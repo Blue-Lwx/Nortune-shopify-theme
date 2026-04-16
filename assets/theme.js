@@ -463,6 +463,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.querySelectorAll("[data-cart-form]").forEach((form) => {
+    const cartContent = document.querySelector("[data-cart-content]");
+    const emptyState = document.querySelector("[data-cart-empty]");
     const subtotalTarget = form.querySelector("[data-cart-subtotal]");
     const shippingRow = form.querySelector("[data-cart-shipping]");
     const shippingLabel = form.querySelector("[data-cart-shipping-label]");
@@ -517,15 +519,24 @@ document.addEventListener("DOMContentLoaded", () => {
       if (totalPrice < threshold) {
         shippingLabel.textContent = "Standard Shipping";
         shippingValue.textContent = underThresholdPrice;
-        shippingHelper.textContent = "Orders under $39.98 ship for $1.99. Final shipping options are confirmed at checkout.";
+        shippingHelper.textContent = "Orders under $39.98 show the standard $1.99 rule when your Shopify shipping profile covers the order. Final rates are confirmed at checkout.";
       } else {
         shippingLabel.textContent = "Shipping";
         shippingValue.textContent = "Calculated at checkout";
-        shippingHelper.textContent = "Eligible shipping rates are confirmed by Shopify at checkout.";
+        shippingHelper.textContent = "Shipping rates for this order are confirmed by Shopify at checkout.";
       }
     };
 
-    const updateCartDom = (cart) => {
+    const removeLineSmoothly = (line) => {
+      if (!line) return;
+
+      line.classList.add("is-removed");
+      window.setTimeout(() => {
+        line.remove();
+      }, 220);
+    };
+
+    const updateCartDom = (cart, options = {}) => {
       if (subtotalTarget) subtotalTarget.textContent = formatMoney(cart.total_price);
       updateShippingDisplay(cart.total_price);
       updateHeaderCartCount(cart.item_count);
@@ -536,9 +547,15 @@ document.addEventListener("DOMContentLoaded", () => {
         const item = returnedItems.get(key);
 
         if (!item) {
-          line.remove();
+          if (options.removedKey && key === options.removedKey) {
+            removeLineSmoothly(line);
+          } else {
+            line.remove();
+          }
           return;
         }
+
+        line.classList.remove("is-removing", "is-updating");
 
         const quantityInput = line.querySelector("[data-cart-quantity]");
         const priceTarget = line.querySelector("[data-cart-line-price]");
@@ -553,15 +570,28 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       if (cart.item_count === 0) {
-        window.location.href = "/cart";
+        if (cartContent) cartContent.hidden = true;
+        if (emptyState) emptyState.hidden = false;
       }
     };
 
-    const changeCartLine = (key, quantity) => {
+    const changeCartLine = (key, quantity, trigger = null) => {
       if (!key) return Promise.resolve();
 
+      const line = form.querySelector(`[data-cart-line-key="${CSS.escape(key)}"][data-cart-line]`);
+      const isRemoval = quantity === 0;
+
+      if (line) {
+        line.classList.toggle("is-removing", isRemoval);
+        line.classList.toggle("is-updating", !isRemoval);
+      }
+      if (trigger) {
+        trigger.setAttribute("aria-disabled", "true");
+        if ("disabled" in trigger) trigger.disabled = true;
+      }
+
       setLoading(true);
-      setStatus("Updating cart...");
+      setStatus(isRemoval ? "Removing item..." : "Updating cart...");
 
       return fetch("/cart/change.js", {
         method: "POST",
@@ -580,10 +610,15 @@ document.addEventListener("DOMContentLoaded", () => {
           return response.json();
         })
         .then((cart) => {
-          updateCartDom(cart);
-          setStatus("Cart updated.");
+          updateCartDom(cart, { removedKey: isRemoval ? key : "" });
+          setStatus(isRemoval ? "Item removed." : "Cart updated.");
         })
         .catch((error) => {
+          if (line) line.classList.remove("is-removing", "is-updating");
+          if (trigger) {
+            trigger.removeAttribute("aria-disabled");
+            if ("disabled" in trigger) trigger.disabled = false;
+          }
           setStatus(error.message);
         })
         .finally(() => {
@@ -594,7 +629,7 @@ document.addEventListener("DOMContentLoaded", () => {
     form.querySelectorAll("[data-cart-remove]").forEach((removeLink) => {
       removeLink.addEventListener("click", (event) => {
         event.preventDefault();
-        changeCartLine(removeLink.getAttribute("data-cart-line-key"), 0);
+        changeCartLine(removeLink.getAttribute("data-cart-line-key"), 0, removeLink);
       });
     });
 
@@ -604,7 +639,7 @@ document.addEventListener("DOMContentLoaded", () => {
         quantityTimer = window.setTimeout(() => {
           const quantity = Math.max(0, Number(input.value) || 0);
           input.value = String(quantity);
-          changeCartLine(input.getAttribute("data-cart-line-key"), quantity);
+          changeCartLine(input.getAttribute("data-cart-line-key"), quantity, input);
         }, 250);
       });
     });

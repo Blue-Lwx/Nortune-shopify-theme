@@ -6,7 +6,7 @@
     </div>
 
     {% if cart.item_count > 0 %}
-      <form action="{{ routes.cart_url }}" method="post" novalidate data-cart-form>
+      <form action="{{ routes.cart_url }}" method="post" novalidate data-cart-form data-cart-content>
         <div class="cart-layout">
           <div class="cart-items">
             {% for item in cart.items %}
@@ -26,7 +26,7 @@
                   {% endif %}
                 {% endif %}
               {% endfor %}
-              <article class="cart-item" data-cart-line data-cart-line-key="{{ item.key | escape }}">
+              <article class="cart-item" data-cart-line data-cart-line-key="{{ item.key | escape }}" aria-live="polite">
                 <a class="cart-item__image" href="{{ item.url }}">
                   {% if item.product.handle == 'null-1776305574568' and cart_color != blank %}
                     <img src="{{ cart_fallback_image }}" alt="{{ display_item_title | escape }}" width="240" height="240" loading="lazy">
@@ -105,6 +105,11 @@
               data-shipping-threshold="3998"
               data-under-threshold-price="$1.99"
             >
+              {% comment %}
+                TODO Shopify Admin: checkout shipping availability depends on the
+                product's General shipping profile covering the customer's market,
+                the discounted order subtotal, and the cart's total weight.
+              {% endcomment %}
               {% if cart.total_price < 3998 %}
                 <span data-cart-shipping-label>Standard Shipping</span>
                 <strong data-cart-shipping-value>$1.99</strong>
@@ -115,9 +120,9 @@
             </div>
             <p class="cart-summary__helper text-muted" data-cart-shipping-helper>
               {% if cart.total_price < 3998 %}
-                Orders under $39.98 ship for $1.99. Final shipping options are confirmed at checkout.
+                Orders under $39.98 show the standard $1.99 rule when your Shopify shipping profile covers the order. Final rates are confirmed at checkout.
               {% else %}
-                Eligible shipping rates are confirmed by Shopify at checkout.
+                Shipping rates for this order are confirmed by Shopify at checkout.
               {% endif %}
             </p>
             <p class="text-muted">{{ section.settings.discount_note }}</p>
@@ -129,8 +134,12 @@
           </aside>
         </div>
       </form>
+      <div class="empty-state" data-cart-empty hidden>
+        <p class="text-muted">{{ section.settings.empty_text }}</p>
+        <a class="button" href="{{ routes.all_products_collection_url }}">{{ section.settings.empty_cta }}</a>
+      </div>
     {% else %}
-      <div class="empty-state">
+      <div class="empty-state" data-cart-empty>
         <p class="text-muted">{{ section.settings.empty_text }}</p>
         <a class="button" href="{{ routes.all_products_collection_url }}">{{ section.settings.empty_cta }}</a>
       </div>
@@ -158,7 +167,7 @@
       "type": "textarea",
       "id": "discount_note",
       "label": "Discount note",
-      "default": "Bundle savings apply automatically. Final shipping options are confirmed by Shopify at checkout."
+      "default": "Bundle savings apply automatically. Checkout uses your Shopify shipping profile and rate rules."
     },
     {
       "type": "text",

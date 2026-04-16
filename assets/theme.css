@@ -1309,6 +1309,26 @@ select {
   grid-template-columns: 110px minmax(0, 1fr) auto;
   gap: 1rem;
   padding: 1rem;
+  transition: opacity 180ms ease, transform 180ms ease, max-height 220ms ease, margin 220ms ease, padding 220ms ease, border-color 180ms ease;
+}
+
+.cart-item.is-updating,
+.cart-item.is-removing {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.cart-item.is-removing {
+  transform: translateX(0.35rem);
+}
+
+.cart-item.is-removed {
+  max-height: 0;
+  margin: 0;
+  opacity: 0;
+  overflow: hidden;
+  padding-block: 0;
+  transform: translateX(0.75rem);
 }
 
 .cart-item__image {
@@ -1428,7 +1448,6 @@ select {
   font-size: 0.78rem;
 }
 
-[data-cart-form].is-updating .cart-item,
 [data-cart-form].is-updating .cart-summary {
   opacity: 0.72;
 }
