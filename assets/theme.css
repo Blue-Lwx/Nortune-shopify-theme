@@ -761,6 +761,21 @@ select {
   gap: 0.7rem;
 }
 
+.product-description {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.product-description p {
+  margin: 0;
+}
+
+.product-description strong {
+  color: var(--foreground);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+}
+
 .price-final {
   color: var(--foreground);
   font-size: 2.25rem;

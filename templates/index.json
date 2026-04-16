@@ -31,19 +31,19 @@
         "image_1": {
           "type": "image",
           "settings": {
-            "alt": "Nortune Glow Case held in a dark setting"
+            "alt": "Nocturne Aura Case held in a dark setting"
           }
         },
         "image_2": {
           "type": "image",
           "settings": {
-            "alt": "Nortune Glow Case on a desk"
+            "alt": "Nocturne Aura Case on a desk"
           }
         },
         "image_3": {
           "type": "image",
           "settings": {
-            "alt": "Nortune Glow Case in low light"
+            "alt": "Nocturne Aura Case in low light"
           }
         }
       },
@@ -182,7 +182,7 @@
         "eyebrow": "Limited stock available",
         "heading": "Ready to glow?",
         "text": "Join thousands of happy customers. Pick your color and never lose your AirPods in the dark again.",
-        "cta_label": "Get Yours Now - $29.99",
+        "cta_label": "Get Yours Now - $33.99",
         "cta_link": "/products/null-1776305574568"
       }
     }

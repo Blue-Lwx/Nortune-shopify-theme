@@ -1,9 +1,9 @@
 [
   {
     "name": "theme_info",
-    "theme_name": "Nortune",
+    "theme_name": "Nocturne",
     "theme_version": "1.0.0",
-    "theme_author": "Nortune",
+    "theme_author": "Nocturne",
     "theme_documentation_url": "https://help.shopify.com/",
     "theme_support_url": "https://help.shopify.com/"
   },
@@ -14,7 +14,7 @@
         "type": "text",
         "id": "brand_name",
         "label": "Brand name",
-        "default": "Nortune"
+        "default": "Nocturne"
       },
       {
         "type": "color",

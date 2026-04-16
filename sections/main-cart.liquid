@@ -10,18 +10,36 @@
         <div class="cart-layout">
           <div class="cart-items">
             {% for item in cart.items %}
+              {% assign display_item_title = item.product.title %}
+              {% if item.product.handle == 'null-1776305574568' %}
+                {% assign display_item_title = 'Nocturne Aura Case' %}
+              {% endif %}
+              {% assign cart_fallback_image = 'nocturne-blue.jpeg' | asset_url %}
+              {% assign cart_color = '' %}
+              {% for property in item.properties %}
+                {% if property.first == 'Color' %}
+                  {% assign cart_color = property.last %}
+                  {% if property.last == 'White' %}
+                    {% assign cart_fallback_image = 'nocturne-white.png' | asset_url %}
+                  {% elsif property.last == 'Orange' %}
+                    {% assign cart_fallback_image = 'nocturne-orange.jpeg' | asset_url %}
+                  {% endif %}
+                {% endif %}
+              {% endfor %}
               <article class="cart-item">
                 <a class="cart-item__image" href="{{ item.url }}">
-                  {% if item.image %}
-                    {% assign item_image_alt = item.image.alt | default: item.product.title %}
+                  {% if item.product.handle == 'null-1776305574568' and cart_color != blank %}
+                    <img src="{{ cart_fallback_image }}" alt="{{ display_item_title | escape }}" width="240" height="240" loading="lazy">
+                  {% elsif item.image %}
+                    {% assign item_image_alt = item.image.alt | default: display_item_title %}
                     {{ item.image | image_url: width: 240 | image_tag: loading: 'lazy', alt: item_image_alt }}
                   {% else %}
-                    <img src="{{ 'product-blue.jpeg' | asset_url }}" alt="{{ item.product.title | escape }}" width="240" height="240" loading="lazy">
+                    <img src="{{ cart_fallback_image }}" alt="{{ display_item_title | escape }}" width="240" height="240" loading="lazy">
                   {% endif %}
                 </a>
 
                 <div class="cart-item__body">
-                  <a class="cart-item__title" href="{{ item.url }}">{{ item.product.title }}</a>
+                  <a class="cart-item__title" href="{{ item.url }}">{{ display_item_title }}</a>
                   {% unless item.product.has_only_default_variant %}
                     <p class="text-muted">{{ item.variant.title }}</p>
                   {% endunless %}
@@ -115,7 +133,7 @@
       "type": "text",
       "id": "empty_cta",
       "label": "Empty cart CTA",
-      "default": "Shop Nortune"
+      "default": "Shop Nocturne"
     }
   ]
 }

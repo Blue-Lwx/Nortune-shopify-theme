@@ -61,11 +61,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const selections = {
       quantity: 2,
       title: "Buy 2",
-      total: "$44.99",
-      now: "$44.99",
-      was: "$59.98",
-      savings: "$14.99",
-      saveLabel: "Save $14.99",
+      total: "$48.99",
+      now: "$48.99",
+      was: "$67.98",
+      savings: "$18.99",
+      saveLabel: "Save $18.99",
       color: "",
       variantId: variantIdInput ? variantIdInput.value : "",
     };
@@ -112,7 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const selectBundle = (card) => {
       const quantity = card.getAttribute("data-quantity") || "1";
-      const total = card.getAttribute("data-total") || "$29.99";
+      const total = card.getAttribute("data-total") || "$33.99";
       const title = card.getAttribute("data-title") || "1 Case";
       const savings = card.getAttribute("data-savings") || "$0.00";
       const now = card.getAttribute("data-now") || total;
