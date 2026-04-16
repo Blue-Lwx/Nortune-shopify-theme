@@ -36,73 +36,73 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("[data-product-builder]").forEach((form) => {
     const bundleCards = form.querySelectorAll("[data-bundle-card]");
     const quantityInput = form.querySelector("[data-bundle-quantity]");
+    const variantIdInput = form.querySelector("[data-variant-id-input]");
     const bundleProperty = form.querySelector("[data-bundle-property]");
+    const bundlePriceProperty = form.querySelector("[data-bundle-price-property]");
     const savingsProperty = form.querySelector("[data-savings-property]");
-    const compatibilityProperty = form.querySelector("[data-compatibility-property]");
-    const compatibilityListProperty = form.querySelector("[data-compatibility-list-property]");
-    const compatibilityOptions = form.querySelectorAll("[data-compatibility-option]");
-    const modelLimitLabel = form.querySelector("[data-model-limit-label]");
-    const modelCount = form.querySelector("[data-model-count]");
-    const colorPickers = form.querySelectorAll("[data-color-picker]");
     const colorOptions = form.querySelectorAll("[data-color-option]");
-    const colorProperties = form.querySelectorAll("[data-color-property]");
+    const colorProperty = form.querySelector("[data-color-property]");
     const galleryMain = document.querySelector("[data-gallery-main]");
     const galleryThumbs = document.querySelectorAll("[data-gallery-thumb]");
-    const priceTargets = document.querySelectorAll("[data-bundle-price-target]");
+    const priceTarget = document.querySelector("[data-bundle-price-target]");
+    const nowTarget = document.querySelector("[data-bundle-now]");
+    const wasTarget = document.querySelector("[data-bundle-was]");
+    const saveTarget = document.querySelector("[data-bundle-save]");
+    const mobilePrice = document.querySelector("[data-mobile-price]");
     const mobileLabel = document.querySelector("[data-mobile-bundle-label]");
     const submitLabels = document.querySelectorAll("[data-submit-price-label]");
-    const summaryModel = form.querySelector("[data-summary-model]");
     const summaryBundle = form.querySelector("[data-summary-bundle]");
-    const summaryColors = form.querySelector("[data-summary-colors]");
+    const summaryColor = form.querySelector("[data-summary-color]");
     const summaryPrice = form.querySelector("[data-summary-price]");
+    const summarySavings = form.querySelector("[data-summary-savings]");
     const submitButton = form.querySelector("[data-builder-submit]");
     const mobileSubmitButton = document.querySelector(`[form="${form.id}"]`);
     const error = form.querySelector("[data-builder-error]");
     const selections = {
-      models: [],
       quantity: 2,
-      title: "2 Cases",
-      total: "$29.95",
-      savings: "$0.00",
-      colors: {},
-    };
-
-    const syncColorProperties = () => {
-      colorProperties.forEach((input) => {
-        const index = input.getAttribute("data-color-property-index");
-        input.value = Number(index) <= selections.quantity ? selections.colors[index] || "" : "";
-        input.disabled = Number(index) > selections.quantity;
-      });
-    };
-
-    const getRequiredColors = () => {
-      return Array.from({ length: selections.quantity }, (_, index) => selections.colors[String(index + 1)] || "");
+      title: "Buy 2",
+      total: "$44.99",
+      now: "$44.99",
+      was: "$59.98",
+      savings: "$14.99",
+      saveLabel: "Save $14.99",
+      color: "",
+      variantId: variantIdInput ? variantIdInput.value : "",
     };
 
     const isComplete = () => {
-      return selections.models.length > 0 && getRequiredColors().every(Boolean);
+      return Boolean(selections.variantId && selections.color);
+    };
+
+    const updatePriceDisplay = () => {
+      if (nowTarget) nowTarget.textContent = selections.now;
+      if (wasTarget) {
+        wasTarget.textContent = selections.was;
+        wasTarget.hidden = !selections.was;
+      }
+      if (saveTarget) {
+        saveTarget.textContent = selections.saveLabel;
+        saveTarget.hidden = !selections.saveLabel;
+      }
+      if (priceTarget) {
+        priceTarget.classList.toggle("has-savings", Boolean(selections.saveLabel));
+      }
+      if (mobilePrice) mobilePrice.textContent = selections.total;
     };
 
     const updateSummary = () => {
-      const requiredColors = getRequiredColors();
-      const chosenColors = requiredColors.filter(Boolean);
-      const selectedModels = selections.models.join(", ");
-
-      if (summaryModel) summaryModel.textContent = selectedModels || "Choose a model";
       if (summaryBundle) summaryBundle.textContent = selections.title;
-      if (summaryColors) {
-        summaryColors.textContent = chosenColors.length === selections.quantity
-          ? chosenColors.join(", ")
-          : `Choose ${selections.quantity - chosenColors.length} color${selections.quantity - chosenColors.length === 1 ? "" : "s"}`;
-      }
+      if (summaryColor) summaryColor.textContent = selections.color || "Choose a color";
       if (summaryPrice) summaryPrice.textContent = selections.total;
+      if (summarySavings) summarySavings.textContent = selections.saveLabel || "No discount";
 
-      if (compatibilityProperty) compatibilityProperty.value = selectedModels;
-      if (compatibilityListProperty) compatibilityListProperty.value = selectedModels;
+      if (variantIdInput) variantIdInput.value = selections.variantId;
       if (quantityInput) quantityInput.value = String(selections.quantity);
       if (bundleProperty) bundleProperty.value = selections.title;
+      if (bundlePriceProperty) bundlePriceProperty.value = selections.total;
       if (savingsProperty) savingsProperty.value = selections.savings;
-      syncColorProperties();
+      if (colorProperty) colorProperty.value = selections.color;
+      updatePriceDisplay();
 
       const ready = isComplete();
       if (submitButton) submitButton.disabled = !ready || submitButton.hasAttribute("data-sold-out");
@@ -110,48 +110,21 @@ document.addEventListener("DOMContentLoaded", () => {
       if (error && ready) error.hidden = true;
     };
 
-    const updateModelSelectionState = () => {
-      const limit = selections.quantity;
-      if (selections.models.length > limit) {
-        selections.models = selections.models.slice(0, limit);
-      }
-
-      compatibilityOptions.forEach((item) => {
-        const value = item.getAttribute("data-value") || "";
-        const isSelected = selections.models.includes(value);
-        const isLocked = !isSelected && selections.models.length >= limit;
-
-        item.classList.toggle("is-selected", isSelected);
-        item.classList.toggle("is-disabled", isLocked);
-        item.setAttribute("aria-pressed", String(isSelected));
-        item.setAttribute("aria-disabled", String(isLocked));
-      });
-
-      if (modelLimitLabel) {
-        modelLimitLabel.textContent = `Choose up to ${limit} model${limit === 1 ? "" : "s"}. We will ship the shell that fits your selection.`;
-      }
-
-      if (modelCount) {
-        modelCount.textContent = `${selections.models.length} of ${limit} selected`;
-      }
-    };
-
-    const updateVisibleColorPickers = () => {
-      colorPickers.forEach((picker) => {
-        const index = Number(picker.getAttribute("data-color-index"));
-        picker.hidden = index > selections.quantity;
-      });
-    };
-
     const selectBundle = (card) => {
       const quantity = card.getAttribute("data-quantity") || "1";
-      const total = card.getAttribute("data-total") || "$29.95";
+      const total = card.getAttribute("data-total") || "$29.99";
       const title = card.getAttribute("data-title") || "1 Case";
       const savings = card.getAttribute("data-savings") || "$0.00";
+      const now = card.getAttribute("data-now") || total;
+      const was = card.getAttribute("data-was") || "";
+      const saveLabel = card.getAttribute("data-save-label") || "";
       selections.quantity = Number(quantity);
       selections.title = title;
       selections.total = total;
       selections.savings = savings;
+      selections.now = now;
+      selections.was = was;
+      selections.saveLabel = saveLabel;
 
       bundleCards.forEach((item) => {
         item.classList.remove("is-selected");
@@ -161,10 +134,6 @@ document.addEventListener("DOMContentLoaded", () => {
       card.classList.add("is-selected");
       card.setAttribute("aria-pressed", "true");
 
-      priceTargets.forEach((target) => {
-        target.textContent = total;
-      });
-
       submitLabels.forEach((target) => {
         target.textContent = `Add ${quantity} to cart - ${total}`;
       });
@@ -173,35 +142,18 @@ document.addEventListener("DOMContentLoaded", () => {
         mobileLabel.textContent = title;
       }
 
-      updateModelSelectionState();
-      updateVisibleColorPickers();
       updateSummary();
     };
 
-    compatibilityOptions.forEach((option) => {
-      option.addEventListener("click", () => {
-        const value = option.getAttribute("data-value") || "";
-        if (!value) return;
-
-        if (selections.models.includes(value)) {
-          selections.models = selections.models.filter((item) => item !== value);
-        } else if (selections.models.length < selections.quantity) {
-          selections.models.push(value);
-        }
-
-        updateModelSelectionState();
-        updateSummary();
-      });
-    });
-
     colorOptions.forEach((option) => {
       option.addEventListener("click", () => {
-        const index = option.getAttribute("data-color-index");
         const value = option.getAttribute("data-value") || "";
-        if (!index) return;
+        const variantId = option.getAttribute("data-variant-id") || "";
+        if (!value || !variantId || option.disabled) return;
 
-        selections.colors[index] = value;
-        form.querySelectorAll(`[data-color-option][data-color-index="${index}"]`).forEach((item) => {
+        selections.color = value;
+        selections.variantId = variantId;
+        colorOptions.forEach((item) => {
           item.classList.remove("is-selected");
           item.setAttribute("aria-pressed", "false");
         });
@@ -241,8 +193,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const selectedBundle = form.querySelector("[data-bundle-card].is-selected");
     if (selectedBundle) selectBundle(selectedBundle);
-    updateModelSelectionState();
-    updateVisibleColorPickers();
     updateSummary();
   });
 });

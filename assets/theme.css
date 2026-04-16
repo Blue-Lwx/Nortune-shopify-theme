@@ -749,6 +749,33 @@ select {
   font-size: 2rem;
 }
 
+.product-price--bundle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.7rem;
+}
+
+.price-final {
+  color: var(--foreground);
+  font-size: 2.25rem;
+}
+
+.price-compare {
+  color: var(--muted-foreground);
+  font-size: 1.05rem;
+  text-decoration: line-through;
+}
+
+.price-save {
+  border-radius: var(--radius);
+  padding: 0.3rem 0.5rem;
+  background: rgba(255, 138, 0, 0.16);
+  color: var(--secondary);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
 .selector-label {
   display: block;
   margin-bottom: 0.65rem;
@@ -894,6 +921,22 @@ select {
   font-weight: 800;
 }
 
+.bundle-card__price {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+.bundle-card__deal {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--muted-foreground);
+  font-size: 0.92rem;
+}
+
+.bundle-card__deal strong {
+  color: var(--foreground);
+}
+
 .badge {
   border-radius: var(--radius);
   padding: 0.25rem 0.45rem;
@@ -938,7 +981,7 @@ select {
 
 .color-swatch-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 0.6rem;
 }
 
@@ -1003,10 +1046,33 @@ select {
   box-shadow: 0 0 28px rgba(0, 191, 255, 0.16);
 }
 
+.color-swatch:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.color-swatch--blue .color-swatch__tone,
 .color-swatch--blue-glow .color-swatch__tone {
   background: #00bfff;
 }
 
+.color-swatch--green .color-swatch__tone {
+  background: #7affb8;
+}
+
+.color-swatch--purple .color-swatch__tone {
+  background: #b28cff;
+}
+
+.color-swatch--red .color-swatch__tone {
+  background: #ff5b5b;
+}
+
+.color-swatch--white .color-swatch__tone {
+  background: #ffffff;
+}
+
+.color-swatch--orange .color-swatch__tone,
 .color-swatch--orange-glow .color-swatch__tone {
   background: #fb923c;
 }
