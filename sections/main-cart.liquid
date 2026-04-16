@@ -66,6 +66,9 @@
                     min="0"
                     aria-label="Quantity for {{ item.product.title | escape }}"
                   >
+                  <a class="cart-item__remove" href="{{ item.url_to_remove }}" aria-label="Remove {{ display_item_title | escape }}">
+                    Remove
+                  </a>
                 </div>
 
                 <div class="cart-item__price">
@@ -83,6 +86,10 @@
             <div class="cart-summary__row">
               <span>Subtotal</span>
               <strong>{{ cart.total_price | money }}</strong>
+            </div>
+            <div class="cart-summary__row cart-summary__row--subtle">
+              <span>Shipping</span>
+              <strong>Calculated at checkout</strong>
             </div>
             <p class="text-muted">{{ section.settings.discount_note }}</p>
             <div class="button-stack">
@@ -121,7 +128,7 @@
       "type": "textarea",
       "id": "discount_note",
       "label": "Discount note",
-      "default": "Nocturne Aura bundle savings apply automatically in cart and checkout."
+      "default": "Bundle savings apply automatically. Shipping rates are calculated by Shopify at checkout from your store shipping settings."
     },
     {
       "type": "text",
