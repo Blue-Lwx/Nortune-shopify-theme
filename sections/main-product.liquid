@@ -140,6 +140,9 @@
                 "option2": {{ variant.option2 | json }},
                 "option3": {{ variant.option3 | json }},
                 "options": {{ variant.options | json }},
+                "inventory_management": {{ variant.inventory_management | json }},
+                "inventory_policy": {{ variant.inventory_policy | json }},
+                "inventory_quantity": {{ variant.inventory_quantity | json }},
                 "title": {{ variant.title | json }}
               }{% unless forloop.last %},{% endunless %}
             {% endfor %}
@@ -226,102 +229,6 @@
             </div>
           </div>
 
-          <div class="selector-group">
-            <div class="selector-heading">
-              <div>
-                <p class="selector-label">Select your color</p>
-                <p class="selector-hint">Choose the real Shopify color variant that will be added to cart.</p>
-              </div>
-              <span class="required-pill">Required</span>
-            </div>
-
-            <div class="color-picker-list">
-              {% assign color_options = 'Blue,Green,Purple,Red,White,Orange' | split: ',' %}
-              <div class="color-picker" data-color-picker>
-                <div class="color-swatch-grid" role="radiogroup" aria-label="Choose color">
-                  {% for color in color_options %}
-                    {% assign color_handle = color | handleize %}
-                    {% assign color_variant = blank %}
-                    {% assign color_option_value = blank %}
-                    {% for variant in product.variants %}
-                      {% assign variant_color_text = variant.option1 | default: variant.title | downcase %}
-                      {% if color_variant == blank %}
-                        {% case color %}
-                          {% when 'White' %}
-                            {% if variant_color_text contains 'white' %}
-                              {% assign color_variant = variant %}
-                              {% assign color_option_value = variant.option1 %}
-                            {% endif %}
-                          {% when 'Blue' %}
-                            {% if variant_color_text contains 'blue' %}
-                              {% assign color_variant = variant %}
-                              {% assign color_option_value = variant.option1 %}
-                            {% endif %}
-                          {% when 'Green' %}
-                            {% if variant_color_text contains 'green' %}
-                              {% assign color_variant = variant %}
-                              {% assign color_option_value = variant.option1 %}
-                            {% endif %}
-                          {% when 'Purple' %}
-                            {% if variant_color_text contains 'purple' %}
-                              {% assign color_variant = variant %}
-                              {% assign color_option_value = variant.option1 %}
-                            {% endif %}
-                          {% when 'Red' %}
-                            {% if variant_color_text contains 'red' %}
-                              {% assign color_variant = variant %}
-                              {% assign color_option_value = variant.option1 %}
-                            {% endif %}
-                          {% when 'Orange' %}
-                            {% if variant_color_text contains 'orange' %}
-                              {% assign color_variant = variant %}
-                              {% assign color_option_value = variant.option1 %}
-                            {% endif %}
-                        {% endcase %}
-                      {% endif %}
-                    {% endfor %}
-
-                    {% assign color_image = blue_product_image %}
-                    {% if color == 'White' %}
-                      {% assign color_image = white_product_image %}
-                    {% elsif color == 'Orange' %}
-                      {% assign color_image = orange_product_image %}
-                    {% elsif color_variant.featured_media %}
-                      {% assign color_image = color_variant.featured_media.preview_image | image_url: width: 1200 %}
-                    {% elsif color_variant.image %}
-                      {% assign color_image = color_variant.image | image_url: width: 1200 %}
-                    {% endif %}
-
-                    {% assign is_available = false %}
-                    {% if color_variant != blank and color_variant.available %}
-                      {% assign is_available = true %}
-                    {% endif %}
-
-                    <button
-                      type="button"
-                      class="color-swatch color-swatch--{{ color_handle }}"
-                      data-color-option
-                      data-value="{{ color }}"
-                      data-option-value="{{ color_option_value | escape }}"
-                      {% if color_variant != blank %}data-variant-id="{{ color_variant.id }}"{% endif %}
-                      data-color-image="{{ color_image }}"
-                      data-available="{{ is_available }}"
-                      aria-pressed="false"
-                      aria-label="{{ color }}"
-                      {% unless is_available %}disabled{% endunless %}
-                    >
-                      <span class="color-swatch__image">
-                        <img src="{{ color_image }}" alt="" width="120" height="120" loading="lazy">
-                        <span class="color-swatch__tone"></span>
-                      </span>
-                      <strong>{{ color }}</strong>
-                    </button>
-                  {% endfor %}
-                </div>
-              </div>
-            </div>
-          </div>
-
           {% assign model_option = product.options_by_name['Applicable models'] %}
           {% if model_option == blank %}
             {% assign model_option = product.options_by_name['Model'] %}
@@ -329,41 +236,152 @@
           {% if model_option == blank %}
             {% assign model_option = product.options_by_name['AirPods model'] %}
           {% endif %}
+          {% comment %}
+            TODO Shopify Admin: split the combined model option values into separate
+            variants if inventory needs to track AirPods 1, AirPods 2, AirPods Pro 1,
+            and AirPods Pro 2 independently. Current product data uses combined
+            AirPods 1/2 and AirPods Pro 1/2 option values.
+          {% endcomment %}
+          {% assign color_options = 'Blue,Green,Purple,Red,White,Orange' | split: ',' %}
 
-          <div class="selector-group">
+          <div class="selector-group selector-group--items">
             <div class="selector-heading">
               <div>
-                <p class="selector-label">Choose your AirPods model</p>
-                <p class="selector-hint">These are real inventory options, so your order syncs to the matching Shopify variant.</p>
+                <p class="selector-label">Build each case</p>
+                <p class="selector-hint">Choose an AirPods model and color for every item in your bundle.</p>
               </div>
               <span class="required-pill">Required</span>
             </div>
 
-            <div class="option-grid option-grid--compatibility" role="radiogroup" aria-label="Choose AirPods model" data-model-picker>
-              {% if model_option != blank %}
-                {% for model_value in model_option.values %}
-                  {% assign model_label = model_value %}
-                  {% if model_value == 'AirPods 1 2 Default' %}
-                    {% assign model_label = 'AirPods 1/2' %}
-                  {% elsif model_value == 'AirPods Pro 1 2 Default' %}
-                    {% assign model_label = 'AirPods Pro 1/2' %}
-                  {% endif %}
+            <div class="bundle-item-list" data-bundle-items>
+              {% for item_index in (1..3) %}
+                <div class="bundle-item" data-bundle-item data-item-index="{{ item_index }}" {% if item_index > 2 %}hidden{% endif %}>
+                  <div class="bundle-item__header">
+                    <strong>Item {{ item_index }}</strong>
+                    <span data-item-summary="{{ item_index }}">Choose model and color</span>
+                  </div>
 
-                  <button
-                    type="button"
-                    class="option-button"
-                    data-model-option
-                    data-value="{{ model_label | escape }}"
-                    data-option-value="{{ model_value | escape }}"
-                    aria-pressed="false"
-                  >
-                    {{ model_label }}
-                  </button>
-                {% endfor %}
-              {% else %}
-                <p class="selector-hint">Add an AirPods model option to this product in Shopify Admin to enable model-specific inventory.</p>
-              {% endif %}
+                  <div class="bundle-item__section">
+                    <p class="color-picker__label">Item {{ item_index }} model</p>
+                    <div class="option-grid option-grid--compatibility" role="radiogroup" aria-label="Item {{ item_index }} model">
+                      {% if model_option != blank %}
+                        {% for model_value in model_option.values %}
+                          {% assign model_label = model_value %}
+                          {% if model_value == 'AirPods 1 2 Default' %}
+                            {% assign model_label = 'AirPods 1/2' %}
+                          {% elsif model_value == 'AirPods Pro 1 2 Default' %}
+                            {% assign model_label = 'AirPods Pro 1/2' %}
+                          {% endif %}
+
+                          <button
+                            type="button"
+                            class="option-button"
+                            data-item-model-option
+                            data-item-index="{{ item_index }}"
+                            data-value="{{ model_label | escape }}"
+                            data-option-value="{{ model_value | escape }}"
+                            aria-pressed="false"
+                          >
+                            {{ model_label }}
+                          </button>
+                        {% endfor %}
+                      {% else %}
+                        <p class="selector-hint">Add an AirPods model option to this product in Shopify Admin to enable model-specific inventory.</p>
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  <div class="bundle-item__section">
+                    <p class="color-picker__label">Item {{ item_index }} color</p>
+                    <div class="color-swatch-grid" role="radiogroup" aria-label="Item {{ item_index }} color">
+                      {% for color in color_options %}
+                        {% assign color_handle = color | handleize %}
+                        {% assign color_variant = blank %}
+                        {% assign color_option_value = blank %}
+                        {% for variant in product.variants %}
+                          {% assign variant_color_text = variant.option1 | default: variant.title | downcase %}
+                          {% if color_variant == blank %}
+                            {% case color %}
+                              {% when 'White' %}
+                                {% if variant_color_text contains 'white' %}
+                                  {% assign color_variant = variant %}
+                                  {% assign color_option_value = variant.option1 %}
+                                {% endif %}
+                              {% when 'Blue' %}
+                                {% if variant_color_text contains 'blue' %}
+                                  {% assign color_variant = variant %}
+                                  {% assign color_option_value = variant.option1 %}
+                                {% endif %}
+                              {% when 'Green' %}
+                                {% if variant_color_text contains 'green' %}
+                                  {% assign color_variant = variant %}
+                                  {% assign color_option_value = variant.option1 %}
+                                {% endif %}
+                              {% when 'Purple' %}
+                                {% if variant_color_text contains 'purple' %}
+                                  {% assign color_variant = variant %}
+                                  {% assign color_option_value = variant.option1 %}
+                                {% endif %}
+                              {% when 'Red' %}
+                                {% if variant_color_text contains 'red' %}
+                                  {% assign color_variant = variant %}
+                                  {% assign color_option_value = variant.option1 %}
+                                {% endif %}
+                              {% when 'Orange' %}
+                                {% if variant_color_text contains 'orange' %}
+                                  {% assign color_variant = variant %}
+                                  {% assign color_option_value = variant.option1 %}
+                                {% endif %}
+                            {% endcase %}
+                          {% endif %}
+                        {% endfor %}
+
+                        {% assign color_image = blue_product_image %}
+                        {% if color == 'White' %}
+                          {% assign color_image = white_product_image %}
+                        {% elsif color == 'Orange' %}
+                          {% assign color_image = orange_product_image %}
+                        {% elsif color_variant.featured_media %}
+                          {% assign color_image = color_variant.featured_media.preview_image | image_url: width: 1200 %}
+                        {% elsif color_variant.image %}
+                          {% assign color_image = color_variant.image | image_url: width: 1200 %}
+                        {% endif %}
+
+                        {% assign is_available = false %}
+                        {% if color_variant != blank and color_variant.available %}
+                          {% assign is_available = true %}
+                        {% endif %}
+
+                        <button
+                          type="button"
+                          class="color-swatch color-swatch--{{ color_handle }}"
+                          data-item-color-option
+                          data-item-index="{{ item_index }}"
+                          data-value="{{ color }}"
+                          data-option-value="{{ color_option_value | escape }}"
+                          data-color-image="{{ color_image }}"
+                          data-available="{{ is_available }}"
+                          aria-pressed="false"
+                          aria-label="Item {{ item_index }} {{ color }}"
+                          {% unless is_available %}disabled{% endunless %}
+                        >
+                          <span class="color-swatch__image">
+                            <img src="{{ color_image }}" alt="" width="120" height="120" loading="lazy">
+                            <span class="color-swatch__tone"></span>
+                          </span>
+                          <strong>{{ color }}</strong>
+                        </button>
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
             </div>
+          </div>
+
+          <div class="bundle-lines" data-bundle-lines hidden>
+            <p class="selector-label">Selected cases</p>
+            <ul data-bundle-lines-list></ul>
           </div>
 
           <ul class="builder-benefits">

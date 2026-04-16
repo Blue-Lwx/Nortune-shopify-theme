@@ -40,10 +40,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const bundleProperty = form.querySelector("[data-bundle-property]");
     const bundlePriceProperty = form.querySelector("[data-bundle-price-property]");
     const savingsProperty = form.querySelector("[data-savings-property]");
-    const colorOptions = form.querySelectorAll("[data-color-option]");
-    const colorProperty = form.querySelector("[data-color-property]");
-    const modelOptions = form.querySelectorAll("[data-model-option]");
-    const modelProperty = form.querySelector("[data-model-property]");
+    const itemCards = form.querySelectorAll("[data-bundle-item]");
+    const itemModelOptions = form.querySelectorAll("[data-item-model-option]");
+    const itemColorOptions = form.querySelectorAll("[data-item-color-option]");
+    const itemSummaries = form.querySelectorAll("[data-item-summary]");
+    const bundleLines = form.querySelector("[data-bundle-lines]");
+    const bundleLinesList = form.querySelector("[data-bundle-lines-list]");
     const variantsJson = form.querySelector("[data-product-variants-json]");
     const galleryMain = document.querySelector("[data-gallery-main]");
     const galleryThumbs = document.querySelectorAll("[data-gallery-thumb]");
@@ -63,6 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const mobileSubmitButton = document.querySelector(`[form="${form.id}"]`);
     const error = form.querySelector("[data-builder-error]");
     let variants = [];
+    let submitAttempted = false;
 
     if (variantsJson) {
       try {
@@ -72,6 +75,15 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    const createItemSelection = () => ({
+      color: "",
+      colorOptionValue: "",
+      colorImage: "",
+      model: "",
+      modelOptionValue: "",
+      variant: null,
+    });
+
     const selections = {
       quantity: 2,
       title: "Buy 2",
@@ -80,43 +92,82 @@ document.addEventListener("DOMContentLoaded", () => {
       was: "$67.98",
       savings: "$18.99",
       saveLabel: "Save $18.99",
-      color: "",
-      colorOptionValue: "",
-      model: "",
-      modelOptionValue: "",
       variantId: variantIdInput ? variantIdInput.value : "",
+      items: [createItemSelection(), createItemSelection(), createItemSelection()],
     };
 
-    const findSelectedVariant = () => {
-      if (!selections.colorOptionValue || !selections.modelOptionValue) return null;
+    const isManagedLimitedInventory = (variant) => {
+      return Boolean(
+        variant &&
+        variant.inventory_management &&
+        variant.inventory_policy !== "continue" &&
+        typeof variant.inventory_quantity === "number"
+      );
+    };
+
+    const variantMatches = (variant, colorOptionValue, modelOptionValue) => {
+      const options = Array.isArray(variant.options) ? variant.options : [];
+
+      return (
+        (
+          variant.option1 === colorOptionValue ||
+          options.includes(colorOptionValue)
+        ) &&
+        (
+          variant.option2 === modelOptionValue ||
+          options.includes(modelOptionValue)
+        )
+      );
+    };
+
+    const findSelectedVariant = (item) => {
+      if (!item.colorOptionValue || !item.modelOptionValue) return null;
 
       return variants.find((variant) => {
-        const options = Array.isArray(variant.options) ? variant.options : [];
-
-        return (
-          variant.available &&
-          (
-            (
-              variant.option1 === selections.colorOptionValue ||
-              options.includes(selections.colorOptionValue)
-            ) &&
-            (
-              variant.option2 === selections.modelOptionValue ||
-              options.includes(selections.modelOptionValue)
-            )
-          )
-        );
+        return variant.available && variantMatches(variant, item.colorOptionValue, item.modelOptionValue);
       }) || null;
     };
 
-    const syncSelectedVariant = () => {
-      const variant = findSelectedVariant();
-      selections.variantId = variant ? String(variant.id) : "";
+    const getActiveItems = () => {
+      return selections.items.slice(0, selections.quantity);
     };
 
-    const isComplete = () => {
-      return Boolean(selections.variantId && selections.color && selections.model);
+    const syncSelectedVariants = () => {
+      getActiveItems().forEach((item) => {
+        item.variant = findSelectedVariant(item);
+      });
+
+      const firstVariant = getActiveItems().find((item) => item.variant);
+      selections.variantId = firstVariant ? String(firstVariant.variant.id) : "";
     };
+
+    const getValidationMessage = () => {
+      const activeItems = getActiveItems();
+      const variantQuantities = new Map();
+
+      for (let index = 0; index < activeItems.length; index += 1) {
+        const item = activeItems[index];
+        const itemNumber = index + 1;
+
+        if (!item.model) return `Please choose a model for item ${itemNumber}.`;
+        if (!item.color) return `Please choose a color for item ${itemNumber}.`;
+        if (!item.variant) return `This variant is sold out for item ${itemNumber}.`;
+
+        const variantId = String(item.variant.id);
+        variantQuantities.set(variantId, (variantQuantities.get(variantId) || 0) + 1);
+      }
+
+      for (const [variantId, quantity] of variantQuantities.entries()) {
+        const variant = variants.find((item) => String(item.id) === variantId);
+        if (isManagedLimitedInventory(variant) && quantity > variant.inventory_quantity) {
+          return "This variant is sold out.";
+        }
+      }
+
+      return "";
+    };
+
+    const isComplete = () => !getValidationMessage();
 
     const updatePriceDisplay = () => {
       if (nowTarget) nowTarget.textContent = selections.now;
@@ -134,28 +185,145 @@ document.addEventListener("DOMContentLoaded", () => {
       if (mobilePrice) mobilePrice.textContent = selections.total;
     };
 
+    const updateGallery = (item) => {
+      if (!galleryMain || !item.colorImage) return;
+
+      galleryMain.setAttribute("src", item.colorImage);
+      galleryMain.setAttribute("alt", `${item.color} AirPods case`);
+      galleryThumbs.forEach((thumb) => {
+        const isActive = thumb.getAttribute("data-image-src") === item.colorImage;
+        thumb.classList.toggle("is-active", isActive);
+        if (isActive) {
+          thumb.setAttribute("aria-current", "true");
+        } else {
+          thumb.removeAttribute("aria-current");
+        }
+      });
+    };
+
+    const updateItemVisibility = () => {
+      itemCards.forEach((card) => {
+        const index = Number(card.getAttribute("data-item-index") || "0");
+        card.hidden = index > selections.quantity;
+      });
+    };
+
+    const updateOptionAvailability = () => {
+      itemModelOptions.forEach((option) => {
+        const index = Number(option.getAttribute("data-item-index") || "1") - 1;
+        const item = selections.items[index];
+        const modelValue = option.getAttribute("data-option-value") || "";
+        const hasAvailableVariant = variants.some((variant) => {
+          if (!variant.available) return false;
+          if (!item.colorOptionValue) return variant.options.includes(modelValue) || variant.option2 === modelValue;
+          return variantMatches(variant, item.colorOptionValue, modelValue);
+        });
+
+        option.disabled = !hasAvailableVariant;
+        option.classList.toggle("is-disabled", !hasAvailableVariant);
+      });
+
+      itemColorOptions.forEach((option) => {
+        const index = Number(option.getAttribute("data-item-index") || "1") - 1;
+        const item = selections.items[index];
+        const colorValue = option.getAttribute("data-option-value") || "";
+        const hasAvailableVariant = variants.some((variant) => {
+          if (!variant.available) return false;
+          if (!item.modelOptionValue) return variant.options.includes(colorValue) || variant.option1 === colorValue;
+          return variantMatches(variant, colorValue, item.modelOptionValue);
+        });
+
+        option.disabled = !hasAvailableVariant;
+        option.classList.toggle("is-disabled", !hasAvailableVariant);
+      });
+    };
+
+    const getCartItems = () => {
+      const grouped = new Map();
+
+      getActiveItems().forEach((item, index) => {
+        if (!item.variant) return;
+
+        const id = String(item.variant.id);
+        const existing = grouped.get(id) || {
+          id: Number(item.variant.id),
+          quantity: 0,
+          labels: [],
+        };
+
+        existing.quantity += 1;
+        existing.labels.push(`Item ${index + 1}: ${item.color} / ${item.model}`);
+        grouped.set(id, existing);
+      });
+
+      return Array.from(grouped.values()).map((item) => ({
+        id: item.id,
+        quantity: item.quantity,
+        properties: {
+          Bundle: selections.title,
+          "Displayed bundle price": selections.total,
+          "Displayed bundle savings": selections.savings,
+          "Selected cases": item.labels.join("; "),
+        },
+      }));
+    };
+
+    const updateSelectedLines = () => {
+      if (!bundleLines || !bundleLinesList) return;
+
+      const activeItems = getActiveItems();
+      const hasSelections = activeItems.some((item) => item.color || item.model);
+      bundleLines.hidden = !hasSelections;
+      bundleLinesList.innerHTML = "";
+
+      activeItems.forEach((item, index) => {
+        const line = document.createElement("li");
+        line.textContent = `Item ${index + 1}: ${item.model || "Choose model"} / ${item.color || "Choose color"}`;
+        bundleLinesList.appendChild(line);
+      });
+    };
+
     const updateSummary = () => {
-      syncSelectedVariant();
+      syncSelectedVariants();
+      updateItemVisibility();
+      updateOptionAvailability();
 
       if (summaryBundle) summaryBundle.textContent = selections.title;
-      if (summaryColor) summaryColor.textContent = selections.color || "Choose a color";
-      if (summaryModel) summaryModel.textContent = selections.model || "Choose a model";
+      if (summaryColor) {
+        summaryColor.textContent = getActiveItems().map((item, index) => {
+          return `Item ${index + 1}: ${item.color || "Choose color"}`;
+        }).join(" | ");
+      }
+      if (summaryModel) {
+        summaryModel.textContent = getActiveItems().map((item, index) => {
+          return `Item ${index + 1}: ${item.model || "Choose model"}`;
+        }).join(" | ");
+      }
       if (summaryPrice) summaryPrice.textContent = selections.total;
       if (summarySavings) summarySavings.textContent = selections.saveLabel || "No discount";
+      itemSummaries.forEach((summary) => {
+        const index = Number(summary.getAttribute("data-item-summary") || "1") - 1;
+        const item = selections.items[index];
+        if (!item) return;
+        summary.textContent = `${item.model || "Choose model"} / ${item.color || "Choose color"}`;
+      });
 
       if (variantIdInput) variantIdInput.value = selections.variantId;
       if (quantityInput) quantityInput.value = String(selections.quantity);
       if (bundleProperty) bundleProperty.value = selections.title;
       if (bundlePriceProperty) bundlePriceProperty.value = selections.total;
       if (savingsProperty) savingsProperty.value = selections.savings;
-      if (colorProperty) colorProperty.value = selections.color;
-      if (modelProperty) modelProperty.value = selections.model;
       updatePriceDisplay();
+      updateSelectedLines();
 
       const ready = isComplete();
-      if (submitButton) submitButton.disabled = !ready || submitButton.hasAttribute("data-sold-out");
-      if (mobileSubmitButton) mobileSubmitButton.disabled = !ready || mobileSubmitButton.hasAttribute("data-sold-out");
-      if (error && ready) error.hidden = true;
+      if (submitButton) submitButton.disabled = submitButton.hasAttribute("data-sold-out");
+      if (mobileSubmitButton) mobileSubmitButton.disabled = mobileSubmitButton.hasAttribute("data-sold-out");
+      if (error) {
+        const message = getValidationMessage();
+        error.textContent = message || "";
+        error.hidden = !message || !submitAttempted;
+      }
     };
 
     const selectBundle = (card) => {
@@ -193,51 +361,42 @@ document.addEventListener("DOMContentLoaded", () => {
       updateSummary();
     };
 
-    colorOptions.forEach((option) => {
+    itemColorOptions.forEach((option) => {
       option.addEventListener("click", () => {
+        const index = Number(option.getAttribute("data-item-index") || "1") - 1;
+        const item = selections.items[index];
         const value = option.getAttribute("data-value") || "";
         const optionValue = option.getAttribute("data-option-value") || "";
-        if (!value || !optionValue || option.disabled) return;
+        const colorImage = option.getAttribute("data-color-image") || "";
+        if (!item || !value || !optionValue || option.disabled) return;
 
-        selections.color = value;
-        selections.colorOptionValue = optionValue;
-        colorOptions.forEach((item) => {
-          item.classList.remove("is-selected");
-          item.setAttribute("aria-pressed", "false");
+        item.color = value;
+        item.colorOptionValue = optionValue;
+        item.colorImage = colorImage;
+        form.querySelectorAll(`[data-item-color-option][data-item-index="${index + 1}"]`).forEach((swatch) => {
+          swatch.classList.remove("is-selected");
+          swatch.setAttribute("aria-pressed", "false");
         });
         option.classList.add("is-selected");
         option.setAttribute("aria-pressed", "true");
-
-        const colorImage = option.getAttribute("data-color-image");
-        if (galleryMain && colorImage) {
-          galleryMain.setAttribute("src", colorImage);
-          galleryMain.setAttribute("alt", `${value} AirPods case`);
-          galleryThumbs.forEach((thumb) => {
-            const isActive = thumb.getAttribute("data-image-src") === colorImage;
-            thumb.classList.toggle("is-active", isActive);
-            if (isActive) {
-              thumb.setAttribute("aria-current", "true");
-            } else {
-              thumb.removeAttribute("aria-current");
-            }
-          });
-        }
-
+        updateGallery(item);
         updateSummary();
       });
     });
 
-    modelOptions.forEach((option) => {
+    itemModelOptions.forEach((option) => {
       option.addEventListener("click", () => {
+        const index = Number(option.getAttribute("data-item-index") || "1") - 1;
+        const item = selections.items[index];
         const value = option.getAttribute("data-value") || "";
         const optionValue = option.getAttribute("data-option-value") || "";
-        if (!value || !optionValue || option.disabled) return;
+        if (!item || !value || !optionValue || option.disabled) return;
 
-        selections.model = value;
-        selections.modelOptionValue = optionValue;
-        modelOptions.forEach((item) => {
-          item.classList.remove("is-selected");
-          item.setAttribute("aria-pressed", "false");
+        item.model = value;
+        item.modelOptionValue = optionValue;
+        form.querySelectorAll(`[data-item-model-option][data-item-index="${index + 1}"]`).forEach((button) => {
+          button.classList.remove("is-selected");
+          button.setAttribute("aria-pressed", "false");
         });
         option.classList.add("is-selected");
         option.setAttribute("aria-pressed", "true");
@@ -251,11 +410,51 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     form.addEventListener("submit", (event) => {
+      submitAttempted = true;
       updateSummary();
       if (!isComplete()) {
         event.preventDefault();
-        if (error) error.hidden = false;
+        if (error) {
+          error.textContent = getValidationMessage();
+          error.hidden = false;
+        }
+        return;
       }
+
+      event.preventDefault();
+      const cartItems = getCartItems();
+      if (!cartItems.length) return;
+
+      if (submitButton) submitButton.disabled = true;
+      if (mobileSubmitButton) mobileSubmitButton.disabled = true;
+
+      fetch("/cart/add.js", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({ items: cartItems }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            return response.json().then((payload) => {
+              throw new Error(payload.description || payload.message || "Unable to add this bundle to cart.");
+            });
+          }
+          return response.json();
+        })
+        .then(() => {
+          window.location.href = "/cart";
+        })
+        .catch((cartError) => {
+          if (error) {
+            error.textContent = cartError.message;
+            error.hidden = false;
+          }
+          if (submitButton) submitButton.disabled = false;
+          if (mobileSubmitButton) mobileSubmitButton.disabled = false;
+        });
     });
 
     const selectedBundle = form.querySelector("[data-bundle-card].is-selected");
