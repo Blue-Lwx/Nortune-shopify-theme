@@ -28,4 +28,4 @@ Shopify theme source:
 
 ## Shopify notes
 
-The product page includes bundle quantity selectors matching the former React experience. Shopify Liquid cannot directly change product prices at add-to-cart time, so the displayed bundle savings need to be backed by Shopify automatic discounts, discount codes, or bundle products configured in the Shopify admin.
+The product page includes bundle quantity selectors backed by Shopify automatic discounts for the Nocturne Aura Case.

@@ -5,7 +5,7 @@
       "settings": {
         "eyebrow": "Your cart",
         "heading": "Ready when you are.",
-        "discount_note": "Bundle savings require matching Shopify automatic discounts or discount codes configured in the admin.",
+        "discount_note": "Nocturne Aura bundle savings apply automatically in cart and checkout.",
         "empty_text": "Your cart is empty.",
         "empty_cta": "Shop Nocturne"
       }
