@@ -23,8 +23,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (nextSrc) mainImage.setAttribute("src", nextSrc);
         mainImage.setAttribute("alt", nextAlt);
 
-        thumbs.forEach((item) => item.classList.remove("is-active"));
+        thumbs.forEach((item) => {
+          item.classList.remove("is-active");
+          item.removeAttribute("aria-current");
+        });
         thumb.classList.add("is-active");
+        thumb.setAttribute("aria-current", "true");
       });
     });
   });
@@ -209,7 +213,13 @@ document.addEventListener("DOMContentLoaded", () => {
           galleryMain.setAttribute("src", colorImage);
           galleryMain.setAttribute("alt", `${value} AirPods case`);
           galleryThumbs.forEach((thumb) => {
-            thumb.classList.toggle("is-active", thumb.getAttribute("data-image-src") === colorImage);
+            const isActive = thumb.getAttribute("data-image-src") === colorImage;
+            thumb.classList.toggle("is-active", isActive);
+            if (isActive) {
+              thumb.setAttribute("aria-current", "true");
+            } else {
+              thumb.removeAttribute("aria-current");
+            }
           });
         }
 

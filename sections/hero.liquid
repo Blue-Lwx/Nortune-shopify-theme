@@ -1,7 +1,14 @@
 {% liquid
   assign hero_image = section.settings.image
   assign fallback_image = 'hero-image.jpg' | asset_url
-  assign cta_link = section.settings.cta_link | default: routes.all_products_collection_url
+  assign cta_product = section.settings.cta_product
+  assign cta_link = section.settings.cta_link
+  if cta_product != blank
+    assign cta_link = cta_product.url
+  endif
+  if cta_link == blank
+    assign cta_link = routes.all_products_collection_url
+  endif
   assign secondary_link = section.settings.secondary_link | default: cta_link
 %}
 
@@ -29,7 +36,7 @@
     <div class="trust-line" aria-label="Store guarantees">
       <span>Fast Shipping</span>
       <span>Secure Checkout</span>
-      <span>30-Day Guarantee</span>
+      <span>14-Day Guarantee</span>
     </div>
   </div>
 </section>
@@ -80,9 +87,14 @@
       "default": "Get Yours Now"
     },
     {
+      "type": "product",
+      "id": "cta_product",
+      "label": "CTA product"
+    },
+    {
       "type": "url",
       "id": "cta_link",
-      "label": "CTA link"
+      "label": "Fallback CTA link"
     },
     {
       "type": "text",

@@ -43,6 +43,7 @@
                 data-gallery-thumb
                 data-image-src="{{ media.preview_image | image_url: width: 1200 }}"
                 data-image-alt="{{ media.alt | default: product.title | escape }}"
+                {% if forloop.first %}aria-current="true"{% endif %}
                 aria-label="View image {{ forloop.index }}"
               >
                 <img src="{{ media.preview_image | image_url: width: 180 }}" alt="{{ media_alt | escape }}" width="{{ media.preview_image.width }}" height="{{ media.preview_image.height }}" loading="lazy">
@@ -58,6 +59,7 @@
               data-gallery-thumb
               data-image-src="{{ fallback | asset_url }}"
               data-image-alt="{{ product.title | default: 'Nortune Glow Case' | escape }}"
+              {% if forloop.first %}aria-current="true"{% endif %}
               aria-label="View image {{ forloop.index }}"
             >
               {% if fallback == 'product-blue.jpeg' %}
@@ -106,23 +108,7 @@
         <input type="hidden" name="properties[Case 2 color]" value="" data-color-property data-color-property-index="2">
         <input type="hidden" name="properties[Case 3 color]" value="" data-color-property data-color-property-index="3">
 
-        {% unless product.has_only_default_variant %}
-          <label class="selector-label" for="ProductSelect-{{ section.id }}">Variant</label>
-          <select class="variant-select" id="ProductSelect-{{ section.id }}" name="id">
-            {% for variant in product.variants %}
-              <option
-                value="{{ variant.id }}"
-                {% if variant == current_variant %}selected="selected"{% endif %}
-                {% unless variant.available %}disabled{% endunless %}
-              >
-                {{ variant.title }} - {{ variant.price | money }}
-                {% unless variant.available %} - Sold out{% endunless %}
-              </option>
-            {% endfor %}
-          </select>
-        {% else %}
-          <input type="hidden" name="id" value="{{ current_variant.id }}">
-        {% endunless %}
+        <input type="hidden" name="id" value="{{ current_variant.id }}">
 
         <div class="product-builder">
           <div class="selector-group">
@@ -432,7 +418,7 @@
       "type": "text",
       "id": "returns_text",
       "label": "Returns text",
-      "default": "30-day guarantee"
+      "default": "14-day guarantee"
     },
     {
       "type": "text",
