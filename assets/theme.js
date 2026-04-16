@@ -42,6 +42,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const savingsProperty = form.querySelector("[data-savings-property]");
     const colorOptions = form.querySelectorAll("[data-color-option]");
     const colorProperty = form.querySelector("[data-color-property]");
+    const modelOptions = form.querySelectorAll("[data-model-option]");
+    const modelProperty = form.querySelector("[data-model-property]");
+    const variantsJson = form.querySelector("[data-product-variants-json]");
     const galleryMain = document.querySelector("[data-gallery-main]");
     const galleryThumbs = document.querySelectorAll("[data-gallery-thumb]");
     const priceTarget = document.querySelector("[data-bundle-price-target]");
@@ -53,11 +56,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const submitLabels = document.querySelectorAll("[data-submit-price-label]");
     const summaryBundle = form.querySelector("[data-summary-bundle]");
     const summaryColor = form.querySelector("[data-summary-color]");
+    const summaryModel = form.querySelector("[data-summary-model]");
     const summaryPrice = form.querySelector("[data-summary-price]");
     const summarySavings = form.querySelector("[data-summary-savings]");
     const submitButton = form.querySelector("[data-builder-submit]");
     const mobileSubmitButton = document.querySelector(`[form="${form.id}"]`);
     const error = form.querySelector("[data-builder-error]");
+    let variants = [];
+
+    if (variantsJson) {
+      try {
+        variants = JSON.parse(variantsJson.textContent || "[]");
+      } catch (parseError) {
+        variants = [];
+      }
+    }
+
     const selections = {
       quantity: 2,
       title: "Buy 2",
@@ -67,11 +81,41 @@ document.addEventListener("DOMContentLoaded", () => {
       savings: "$18.99",
       saveLabel: "Save $18.99",
       color: "",
+      colorOptionValue: "",
+      model: "",
+      modelOptionValue: "",
       variantId: variantIdInput ? variantIdInput.value : "",
     };
 
+    const findSelectedVariant = () => {
+      if (!selections.colorOptionValue || !selections.modelOptionValue) return null;
+
+      return variants.find((variant) => {
+        const options = Array.isArray(variant.options) ? variant.options : [];
+
+        return (
+          variant.available &&
+          (
+            (
+              variant.option1 === selections.colorOptionValue ||
+              options.includes(selections.colorOptionValue)
+            ) &&
+            (
+              variant.option2 === selections.modelOptionValue ||
+              options.includes(selections.modelOptionValue)
+            )
+          )
+        );
+      }) || null;
+    };
+
+    const syncSelectedVariant = () => {
+      const variant = findSelectedVariant();
+      selections.variantId = variant ? String(variant.id) : "";
+    };
+
     const isComplete = () => {
-      return Boolean(selections.variantId && selections.color);
+      return Boolean(selections.variantId && selections.color && selections.model);
     };
 
     const updatePriceDisplay = () => {
@@ -91,8 +135,11 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const updateSummary = () => {
+      syncSelectedVariant();
+
       if (summaryBundle) summaryBundle.textContent = selections.title;
       if (summaryColor) summaryColor.textContent = selections.color || "Choose a color";
+      if (summaryModel) summaryModel.textContent = selections.model || "Choose a model";
       if (summaryPrice) summaryPrice.textContent = selections.total;
       if (summarySavings) summarySavings.textContent = selections.saveLabel || "No discount";
 
@@ -102,6 +149,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (bundlePriceProperty) bundlePriceProperty.value = selections.total;
       if (savingsProperty) savingsProperty.value = selections.savings;
       if (colorProperty) colorProperty.value = selections.color;
+      if (modelProperty) modelProperty.value = selections.model;
       updatePriceDisplay();
 
       const ready = isComplete();
@@ -148,11 +196,11 @@ document.addEventListener("DOMContentLoaded", () => {
     colorOptions.forEach((option) => {
       option.addEventListener("click", () => {
         const value = option.getAttribute("data-value") || "";
-        const variantId = option.getAttribute("data-variant-id") || "";
-        if (!value || !variantId || option.disabled) return;
+        const optionValue = option.getAttribute("data-option-value") || "";
+        if (!value || !optionValue || option.disabled) return;
 
         selections.color = value;
-        selections.variantId = variantId;
+        selections.colorOptionValue = optionValue;
         colorOptions.forEach((item) => {
           item.classList.remove("is-selected");
           item.setAttribute("aria-pressed", "false");
@@ -174,6 +222,25 @@ document.addEventListener("DOMContentLoaded", () => {
             }
           });
         }
+
+        updateSummary();
+      });
+    });
+
+    modelOptions.forEach((option) => {
+      option.addEventListener("click", () => {
+        const value = option.getAttribute("data-value") || "";
+        const optionValue = option.getAttribute("data-option-value") || "";
+        if (!value || !optionValue || option.disabled) return;
+
+        selections.model = value;
+        selections.modelOptionValue = optionValue;
+        modelOptions.forEach((item) => {
+          item.classList.remove("is-selected");
+          item.setAttribute("aria-pressed", "false");
+        });
+        option.classList.add("is-selected");
+        option.setAttribute("aria-pressed", "true");
 
         updateSummary();
       });

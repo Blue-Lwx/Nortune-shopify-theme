@@ -128,6 +128,23 @@
         <input type="hidden" name="properties[Displayed bundle price]" value="{{ two_total | money }}" data-bundle-price-property>
         <input type="hidden" name="properties[Displayed bundle savings]" value="{{ two_savings | money }}" data-savings-property>
         <input type="hidden" name="properties[Color]" value="" data-color-property>
+        <input type="hidden" name="properties[AirPods model]" value="" data-model-property>
+
+        <script type="application/json" data-product-variants-json>
+          [
+            {% for variant in product.variants %}
+              {
+                "id": {{ variant.id | json }},
+                "available": {{ variant.available | json }},
+                "option1": {{ variant.option1 | json }},
+                "option2": {{ variant.option2 | json }},
+                "option3": {{ variant.option3 | json }},
+                "options": {{ variant.options | json }},
+                "title": {{ variant.title | json }}
+              }{% unless forloop.last %},{% endunless %}
+            {% endfor %}
+          ]
+        </script>
 
         <div class="product-builder">
           <div class="selector-group">
@@ -225,35 +242,40 @@
                   {% for color in color_options %}
                     {% assign color_handle = color | handleize %}
                     {% assign color_variant = blank %}
+                    {% assign color_option_value = blank %}
                     {% for variant in product.variants %}
                       {% assign variant_color_text = variant.option1 | default: variant.title | downcase %}
                       {% if color_variant == blank %}
                         {% case color %}
                           {% when 'White' %}
-                            {% if variant_color_text contains 'glow blue' or variant_color_text contains 'luminous white' or variant_color_text contains 'white' %}
+                            {% if variant_color_text contains 'white' %}
                               {% assign color_variant = variant %}
+                              {% assign color_option_value = variant.option1 %}
                             {% endif %}
                           {% when 'Blue' %}
                             {% if variant_color_text contains 'blue' %}
-                              {% unless variant_color_text contains 'glow blue' %}
-                                {% assign color_variant = variant %}
-                              {% endunless %}
+                              {% assign color_variant = variant %}
+                              {% assign color_option_value = variant.option1 %}
                             {% endif %}
                           {% when 'Green' %}
                             {% if variant_color_text contains 'green' %}
                               {% assign color_variant = variant %}
+                              {% assign color_option_value = variant.option1 %}
                             {% endif %}
                           {% when 'Purple' %}
                             {% if variant_color_text contains 'purple' %}
                               {% assign color_variant = variant %}
+                              {% assign color_option_value = variant.option1 %}
                             {% endif %}
                           {% when 'Red' %}
                             {% if variant_color_text contains 'red' %}
                               {% assign color_variant = variant %}
+                              {% assign color_option_value = variant.option1 %}
                             {% endif %}
                           {% when 'Orange' %}
                             {% if variant_color_text contains 'orange' %}
                               {% assign color_variant = variant %}
+                              {% assign color_option_value = variant.option1 %}
                             {% endif %}
                         {% endcase %}
                       {% endif %}
@@ -280,6 +302,7 @@
                       class="color-swatch color-swatch--{{ color_handle }}"
                       data-color-option
                       data-value="{{ color }}"
+                      data-option-value="{{ color_option_value | escape }}"
                       {% if color_variant != blank %}data-variant-id="{{ color_variant.id }}"{% endif %}
                       data-color-image="{{ color_image }}"
                       data-available="{{ is_available }}"
@@ -296,6 +319,50 @@
                   {% endfor %}
                 </div>
               </div>
+            </div>
+          </div>
+
+          {% assign model_option = product.options_by_name['Applicable models'] %}
+          {% if model_option == blank %}
+            {% assign model_option = product.options_by_name['Model'] %}
+          {% endif %}
+          {% if model_option == blank %}
+            {% assign model_option = product.options_by_name['AirPods model'] %}
+          {% endif %}
+
+          <div class="selector-group">
+            <div class="selector-heading">
+              <div>
+                <p class="selector-label">Choose your AirPods model</p>
+                <p class="selector-hint">These are real inventory options, so your order syncs to the matching Shopify variant.</p>
+              </div>
+              <span class="required-pill">Required</span>
+            </div>
+
+            <div class="option-grid option-grid--compatibility" role="radiogroup" aria-label="Choose AirPods model" data-model-picker>
+              {% if model_option != blank %}
+                {% for model_value in model_option.values %}
+                  {% assign model_label = model_value %}
+                  {% if model_value == 'AirPods 1 2 Default' %}
+                    {% assign model_label = 'AirPods 1/2' %}
+                  {% elsif model_value == 'AirPods Pro 1 2 Default' %}
+                    {% assign model_label = 'AirPods Pro 1/2' %}
+                  {% endif %}
+
+                  <button
+                    type="button"
+                    class="option-button"
+                    data-model-option
+                    data-value="{{ model_label | escape }}"
+                    data-option-value="{{ model_value | escape }}"
+                    aria-pressed="false"
+                  >
+                    {{ model_label }}
+                  </button>
+                {% endfor %}
+              {% else %}
+                <p class="selector-hint">Add an AirPods model option to this product in Shopify Admin to enable model-specific inventory.</p>
+              {% endif %}
             </div>
           </div>
 
@@ -316,6 +383,10 @@
               <strong data-summary-color>Choose a color</strong>
             </div>
             <div>
+              <span>AirPods model</span>
+              <strong data-summary-model>Choose a model</strong>
+            </div>
+            <div>
               <span>Final price</span>
               <strong data-summary-price>{{ two_total | money }}</strong>
             </div>
@@ -325,7 +396,7 @@
             </div>
           </div>
 
-          <p class="form-error" data-builder-error hidden>Please choose a color before adding to cart.</p>
+          <p class="form-error" data-builder-error hidden>Please choose a color and AirPods model before adding to cart.</p>
         </div>
 
         <button class="button" type="submit" style="width: 100%;" data-builder-submit disabled {% unless current_variant.available %}data-sold-out disabled{% endunless %}>
