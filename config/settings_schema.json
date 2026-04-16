@@ -1,0 +1,33 @@
+[
+  {
+    "name": "theme_info",
+    "theme_name": "Nortune",
+    "theme_version": "1.0.0",
+    "theme_author": "Nortune",
+    "theme_documentation_url": "https://help.shopify.com/",
+    "theme_support_url": "https://help.shopify.com/"
+  },
+  {
+    "name": "Theme settings",
+    "settings": [
+      {
+        "type": "text",
+        "id": "brand_name",
+        "label": "Brand name",
+        "default": "Nortune"
+      },
+      {
+        "type": "color",
+        "id": "accent_blue",
+        "label": "Blue glow accent",
+        "default": "#00bfff"
+      },
+      {
+        "type": "color",
+        "id": "accent_orange",
+        "label": "Orange glow accent",
+        "default": "#ff8a00"
+      }
+    ]
+  }
+]

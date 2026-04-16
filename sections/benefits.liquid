@@ -1,0 +1,88 @@
+{% liquid
+  assign cta_link = section.settings.cta_link | default: routes.all_products_collection_url
+%}
+
+<section class="section">
+  <div class="container">
+    <div class="section-intro">
+      <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+      <h2 class="heading-lg">{{ section.settings.heading }}</h2>
+    </div>
+
+    <div class="grid-4">
+      {% for block in section.blocks %}
+        <article class="benefit-item" {{ block.shopify_attributes }}>
+          <div class="benefit-icon">{% render 'icon-check' %}</div>
+          <h3 class="heading-md" style="font-size: 1.2rem;">{{ block.settings.title }}</h3>
+          <p class="text-muted">{{ block.settings.text }}</p>
+        </article>
+      {% endfor %}
+    </div>
+
+    <div class="center section-cta">
+      <a class="button" href="{{ cta_link }}">{{ section.settings.cta_label }}</a>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Benefits",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "Why people love it"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "More than just a case"
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "CTA label",
+      "default": "Get Yours Now"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "CTA link"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "benefit",
+      "name": "Benefit",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Subtle glow"
+        },
+        {
+          "type": "textarea",
+          "id": "text",
+          "label": "Text",
+          "default": "Absorbs light and releases a soft glow in darker environments."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Benefits",
+      "blocks": [
+        { "type": "benefit", "settings": { "title": "Subtle glow", "text": "A phosphorescent finish creates a soft glow after light exposure." } },
+        { "type": "benefit", "settings": { "title": "Instantly visible in the dark", "text": "No more fumbling around - find your AirPods case the second the lights go out." } },
+        { "type": "benefit", "settings": { "title": "Full protection, zero bulk", "text": "Shock-absorbent material guards against drops, scratches, and everyday wear." } },
+        { "type": "benefit", "settings": { "title": "Ultra-lightweight and portable", "text": "Barely adds any weight and slides into your pocket just like your bare AirPods case." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

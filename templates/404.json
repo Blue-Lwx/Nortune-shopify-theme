@@ -1,0 +1,16 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-404",
+      "settings": {
+        "eyebrow": "404",
+        "heading": "This page wandered into the dark.",
+        "text": "Head back home and pick up where the glow is.",
+        "cta_label": "Back to home"
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

@@ -1,0 +1,192 @@
+{
+  "sections": {
+    "hero": {
+      "type": "hero",
+      "settings": {
+        "image_alt": "Glow-in-the-dark AirPods case in a dark setting",
+        "eyebrow": "Selling fast - Limited stock",
+        "heading_prefix": "Never lose your AirPods ",
+        "heading_highlight": "in the dark again",
+        "subtext": "A premium AirPods case with a phosphorescent glow - spot it instantly in any dark room.",
+        "cta_label": "Get Yours Now",
+        "secondary_label": "Choose Your Glow"
+      }
+    },
+    "featured_product": {
+      "type": "featured-product",
+      "settings": {
+        "eyebrow": "Two variants",
+        "heading": "Choose your glow",
+        "text": "A clean AirPods case that stays low-key in daylight and glows softly when the room goes dark.",
+        "cta_label": "Get Yours Now"
+      }
+    },
+    "lifestyle_gallery": {
+      "type": "lifestyle-gallery",
+      "blocks": {
+        "image_1": {
+          "type": "image",
+          "settings": {
+            "alt": "Nortune Glow Case held in a dark setting"
+          }
+        },
+        "image_2": {
+          "type": "image",
+          "settings": {
+            "alt": "Nortune Glow Case on a desk"
+          }
+        },
+        "image_3": {
+          "type": "image",
+          "settings": {
+            "alt": "Nortune Glow Case in low light"
+          }
+        }
+      },
+      "block_order": [
+        "image_1",
+        "image_2",
+        "image_3"
+      ],
+      "settings": {
+        "eyebrow": "Made for your lifestyle",
+        "heading": "For every low-light moment",
+        "text": "Whether it's your nightstand, a dimmed office, or a late-night commute - it just works."
+      }
+    },
+    "benefits": {
+      "type": "benefits",
+      "blocks": {
+        "benefit_1": {
+          "type": "benefit",
+          "settings": {
+            "title": "Instantly visible in the dark",
+            "text": "No more fumbling around - find your AirPods case the second the lights go out."
+          }
+        },
+        "benefit_2": {
+          "type": "benefit",
+          "settings": {
+            "title": "Premium glowing aesthetic",
+            "text": "A soft phosphorescent finish that looks stunning in low-light without being flashy."
+          }
+        },
+        "benefit_3": {
+          "type": "benefit",
+          "settings": {
+            "title": "Full protection, zero bulk",
+            "text": "Shock-absorbent material guards against drops, scratches, and everyday wear."
+          }
+        },
+        "benefit_4": {
+          "type": "benefit",
+          "settings": {
+            "title": "Ultra-lightweight and portable",
+            "text": "Barely adds any weight and slides into your pocket just like your bare AirPods case."
+          }
+        }
+      },
+      "block_order": [
+        "benefit_1",
+        "benefit_2",
+        "benefit_3",
+        "benefit_4"
+      ],
+      "settings": {
+        "eyebrow": "Why people love it",
+        "heading": "More than just a case"
+      }
+    },
+    "reviews": {
+      "type": "reviews-preview",
+      "blocks": {
+        "review_1": {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "text": "I keep finding my AirPods instantly now, even in a pitch-black room. Game changer.",
+            "author": "Alex M."
+          }
+        },
+        "review_2": {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "text": "It looks premium in daylight and the glow at night is honestly beautiful. Friends always ask about it.",
+            "author": "Jordan K."
+          }
+        },
+        "review_3": {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "text": "Super lightweight, fits perfectly, and the glow is subtle. Love the blue one.",
+            "author": "Sam T."
+          }
+        }
+      },
+      "block_order": [
+        "review_1",
+        "review_2",
+        "review_3"
+      ],
+      "settings": {
+        "eyebrow": "4.9/5 from 200+ reviews",
+        "heading": "People can't stop talking about it"
+      }
+    },
+    "faq": {
+      "type": "faq-preview",
+      "blocks": {
+        "faq_1": {
+          "type": "faq",
+          "settings": {
+            "question": "How long does the glow last?",
+            "answer": "After full light exposure, the glow lasts 2-4 hours at its brightest, then gradually fades. A few minutes under any light source recharges it."
+          }
+        },
+        "faq_2": {
+          "type": "faq",
+          "settings": {
+            "question": "Which AirPods models does it fit?",
+            "answer": "The case is compatible with popular AirPods charging cases. Use your Shopify product options or description for exact model compatibility."
+          }
+        },
+        "faq_3": {
+          "type": "faq",
+          "settings": {
+            "question": "Does it interfere with wireless charging?",
+            "answer": "No. The case is designed to work with both wireless and wired charging without removing it."
+          }
+        }
+      },
+      "block_order": [
+        "faq_1",
+        "faq_2",
+        "faq_3"
+      ],
+      "settings": {
+        "eyebrow": "Got questions?",
+        "heading": "Everything you need to know"
+      }
+    },
+    "final_cta": {
+      "type": "final-cta",
+      "settings": {
+        "eyebrow": "Limited stock available",
+        "heading": "Ready to glow?",
+        "text": "Join thousands of happy customers. Pick your color and never lose your AirPods in the dark again.",
+        "cta_label": "Get Yours Now - $29.99"
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "featured_product",
+    "benefits",
+    "lifestyle_gallery",
+    "reviews",
+    "faq",
+    "final_cta"
+  ]
+}

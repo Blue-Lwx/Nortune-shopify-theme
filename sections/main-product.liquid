@@ -1,0 +1,400 @@
+{% liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign base_price_cents = section.settings.bundle_base_price_cents
+  if base_price_cents == blank or base_price_cents == 0
+    assign base_price_cents = current_variant.price
+  endif
+
+  assign single_total = base_price_cents
+  assign two_total = base_price_cents | times: 165 | divided_by: 100
+  assign three_total = base_price_cents | times: 165 | divided_by: 100
+  assign two_compare = base_price_cents | times: 2
+  assign three_compare = base_price_cents | times: 3
+  assign two_savings = two_compare | minus: two_total
+  assign three_savings = three_compare | minus: three_total
+  assign product_form_id = 'product-form-' | append: section.id
+%}
+
+<section class="product-main">
+  <div class="container product-layout">
+    <div class="product-gallery" data-product-gallery>
+      <div class="product-gallery__main">
+        {% if product.featured_media %}
+          <img
+            data-gallery-main
+            src="{{ product.featured_media.preview_image | image_url: width: 1200 }}"
+            alt="{{ product.featured_media.alt | default: product.title | escape }}"
+            width="{{ product.featured_media.preview_image.width }}"
+            height="{{ product.featured_media.preview_image.height }}"
+          >
+        {% else %}
+          <img data-gallery-main src="{{ 'product-blue.jpeg' | asset_url }}" alt="{{ product.title | default: 'Glow-in-the-dark AirPods case' }}" width="1824" height="1824">
+        {% endif %}
+      </div>
+
+      <div class="product-gallery__thumbs" aria-label="Product images">
+        {% if product.media.size > 0 %}
+          {% for media in product.media %}
+            {% if media.preview_image %}
+              {% assign media_alt = media.alt | default: product.title %}
+              <button
+                type="button"
+                class="{% if forloop.first %}is-active{% endif %}"
+                data-gallery-thumb
+                data-image-src="{{ media.preview_image | image_url: width: 1200 }}"
+                data-image-alt="{{ media.alt | default: product.title | escape }}"
+                aria-label="View image {{ forloop.index }}"
+              >
+                <img src="{{ media.preview_image | image_url: width: 180 }}" alt="{{ media_alt | escape }}" width="{{ media.preview_image.width }}" height="{{ media.preview_image.height }}" loading="lazy">
+              </button>
+            {% endif %}
+          {% endfor %}
+        {% else %}
+          {% assign fallback_images = 'product-blue.jpeg,product-orange.jpeg,lifestyle-lowlight.jpg' | split: ',' %}
+          {% for fallback in fallback_images %}
+            <button
+              type="button"
+              class="{% if forloop.first %}is-active{% endif %}"
+              data-gallery-thumb
+              data-image-src="{{ fallback | asset_url }}"
+              data-image-alt="{{ product.title | default: 'Nortune Glow Case' | escape }}"
+              aria-label="View image {{ forloop.index }}"
+            >
+              {% if fallback == 'product-blue.jpeg' %}
+                <img src="{{ fallback | asset_url }}" alt="{{ product.title | default: 'Nortune Glow Case' | escape }}" width="1824" height="1824" loading="lazy">
+              {% elsif fallback == 'product-orange.jpeg' %}
+                <img src="{{ fallback | asset_url }}" alt="{{ product.title | default: 'Nortune Glow Case' | escape }}" width="1920" height="1829" loading="lazy">
+              {% else %}
+                <img src="{{ fallback | asset_url }}" alt="{{ product.title | default: 'Nortune Glow Case' | escape }}" width="1920" height="1920" loading="lazy">
+              {% endif %}
+            </button>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+
+    <div>
+      <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+      <h1 class="heading-xl product-title">{{ product.title | default: section.settings.fallback_title }}</h1>
+
+      <div class="product-review-line">
+        <div class="stars" aria-label="5 out of 5 stars">
+          {% for i in (1..5) %}
+            {% render 'icon-star' %}
+          {% endfor %}
+        </div>
+        <span class="text-muted">{{ section.settings.review_preview }}</span>
+      </div>
+
+      <div class="text-muted">
+        {% if product.description != blank %}
+          {{ product.description | strip_html | truncatewords: 38 }}
+        {% else %}
+          {{ section.settings.short_description }}
+        {% endif %}
+      </div>
+
+      <p class="product-price" data-bundle-price-target>{{ two_total | money }}</p>
+
+      {% form 'product', product, id: product_form_id, class: 'product-form', data-bundle-form: '' %}
+        <input type="hidden" name="quantity" value="2" data-bundle-quantity>
+        <input type="hidden" name="properties[Bundle]" value="2 Cases" data-bundle-property>
+        <input type="hidden" name="properties[Displayed bundle savings]" value="{{ two_savings | money }}" data-savings-property>
+
+        {% unless product.has_only_default_variant %}
+          <label class="selector-label" for="ProductSelect-{{ section.id }}">Variant</label>
+          <select class="variant-select" id="ProductSelect-{{ section.id }}" name="id">
+            {% for variant in product.variants %}
+              <option
+                value="{{ variant.id }}"
+                {% if variant == current_variant %}selected="selected"{% endif %}
+                {% unless variant.available %}disabled{% endunless %}
+              >
+                {{ variant.title }} - {{ variant.price | money }}
+                {% unless variant.available %} - Sold out{% endunless %}
+              </option>
+            {% endfor %}
+          </select>
+        {% else %}
+          <input type="hidden" name="id" value="{{ current_variant.id }}">
+        {% endunless %}
+
+        <div style="margin-top: 2rem;">
+          <div style="display: flex; justify-content: space-between; gap: 1rem; align-items: end; margin-bottom: 0.75rem;">
+            <label class="selector-label" style="margin: 0;">Buy more, save more</label>
+            <span class="text-muted" style="font-size: 0.78rem;">Requires a matching Shopify discount</span>
+          </div>
+
+          <div class="bundle-list">
+            <button
+              class="bundle-card"
+              type="button"
+              data-bundle-card
+              data-quantity="1"
+              data-title="1 Case"
+              data-total="{{ single_total | money }}"
+              data-savings="$0.00"
+              aria-pressed="false"
+            >
+              <span class="bundle-card__top">
+                <span>
+                  <span class="bundle-card__title">1 Case</span>
+                  <span class="text-muted">Try the glow</span>
+                </span>
+                <span>
+                  <strong>{{ single_total | money }}</strong>
+                </span>
+              </span>
+            </button>
+
+            <button
+              class="bundle-card is-selected"
+              type="button"
+              data-bundle-card
+              data-quantity="2"
+              data-title="2 Cases"
+              data-total="{{ two_total | money }}"
+              data-savings="{{ two_savings | money }}"
+              aria-pressed="true"
+            >
+              <span class="bundle-card__top">
+                <span>
+                  <span class="bundle-card__title">2 Cases <span class="badge">Most Popular</span></span>
+                  <span class="text-muted">35% off the second case</span>
+                </span>
+                <span style="text-align: right;">
+                  <strong>{{ two_total | money }}</strong>
+                  <span class="text-muted" style="display: block; font-size: 0.78rem;">Save {{ two_savings | money }}</span>
+                </span>
+              </span>
+              <span class="bundle-card__meta">
+                <span>Regular price {{ two_compare | money }}</span>
+                <span>{{ two_total | divided_by: 2 | money }} per case</span>
+              </span>
+            </button>
+
+            <button
+              class="bundle-card is-best"
+              type="button"
+              data-bundle-card
+              data-quantity="3"
+              data-title="3 Cases"
+              data-total="{{ three_total | money }}"
+              data-savings="{{ three_savings | money }}"
+              aria-pressed="false"
+            >
+              <span class="bundle-card__top">
+                <span>
+                  <span class="bundle-card__title">3 Cases <span class="badge badge--blue">Best Value</span></span>
+                  <span class="text-muted">45% off the entire bundle</span>
+                </span>
+                <span style="text-align: right;">
+                  <strong>{{ three_total | money }}</strong>
+                  <span class="text-muted" style="display: block; font-size: 0.78rem;">Save {{ three_savings | money }}</span>
+                </span>
+              </span>
+              <span class="bundle-card__meta">
+                <span>Regular price {{ three_compare | money }}</span>
+                <span>{{ three_total | divided_by: 3 | money }} per case</span>
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <button class="button" type="submit" style="width: 100%;" {% unless current_variant.available %}disabled{% endunless %}>
+          {% if current_variant.available %}
+            <span data-submit-price-label>Add 2 to cart - {{ two_total | money }}</span>
+          {% else %}
+            {{ 'products.product.sold_out' | t }}
+          {% endif %}
+        </button>
+      {% endform %}
+
+      <ul class="product-benefits">
+        {% for block in section.blocks %}
+          {% if block.type == 'benefit' %}
+            <li {{ block.shopify_attributes }}>{% render 'icon-check' %} {{ block.settings.text }}</li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+
+      <div class="trust-grid">
+        <div class="trust-item">{{ section.settings.shipping_text }}</div>
+        <div class="trust-item">{{ section.settings.returns_text }}</div>
+        <div class="trust-item">{{ section.settings.checkout_text }}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="mobile-sticky-atc">
+  <div>
+    <strong data-bundle-price-target>{{ two_total | money }}</strong>
+    <div class="text-muted" style="font-size: 0.75rem;" data-mobile-bundle-label>2 Cases</div>
+  </div>
+  <button class="button" type="submit" form="product-form-{{ section.id }}">
+    <span data-submit-price-label>Add 2 to cart - {{ two_total | money }}</span>
+  </button>
+</div>
+
+<section class="section section--muted">
+  <div class="container grid-2 product-details-grid">
+    <div class="grid-2 product-highlight-grid">
+      {% for block in section.blocks %}
+        {% if block.type == 'highlight' %}
+          <article class="info-card" {{ block.shopify_attributes }}>
+            <div class="icon-pill">{% render 'icon-check' %}</div>
+            <h2 class="heading-md" style="font-size: 1.2rem;">{{ block.settings.title }}</h2>
+            <p class="text-muted">{{ block.settings.text }}</p>
+          </article>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <div>
+      <p class="eyebrow">{{ section.settings.details_eyebrow }}</p>
+      <h2 class="heading-lg">{{ section.settings.details_heading }}</h2>
+      <p class="text-muted">{{ section.settings.details_text }}</p>
+      <ul class="product-benefits">
+        <li>{% render 'icon-check' %} Fits AirPods charging cases</li>
+        <li>{% render 'icon-check' %} Glow coating recharges with light</li>
+        <li>{% render 'icon-check' %} Blue Glow and Orange Glow finishes</li>
+        <li>{% render 'icon-check' %} Includes keyring loop</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container grid-3">
+    <div class="media-tile">
+      <img src="{{ 'hero-image.jpg' | asset_url }}" alt="Nortune Glow Case held at night" width="720" height="617" loading="lazy">
+    </div>
+    <div class="media-tile">
+      <img src="{{ 'lifestyle-desk.jpg' | asset_url }}" alt="Nortune Glow Case on a desk" width="512" height="512" loading="lazy">
+    </div>
+    <div class="media-tile">
+      <img src="{{ 'lifestyle-lowlight.jpg' | asset_url }}" alt="Nortune Glow Case in low light" width="1920" height="1920" loading="lazy">
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Main product",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "Nortune Glow Case"
+    },
+    {
+      "type": "text",
+      "id": "fallback_title",
+      "label": "Fallback title",
+      "default": "Glow-in-the-Dark AirPods Case"
+    },
+    {
+      "type": "textarea",
+      "id": "short_description",
+      "label": "Short description",
+      "default": "Minimal by day. Easy to find at night. A protective AirPods case with a phosphorescent finish that recharges under everyday light."
+    },
+    {
+      "type": "text",
+      "id": "review_preview",
+      "label": "Review preview",
+      "default": "4.9/5 from glow-in-the-dark case fans"
+    },
+    {
+      "type": "number",
+      "id": "bundle_base_price_cents",
+      "label": "Bundle base price in cents",
+      "default": 2999
+    },
+    {
+      "type": "text",
+      "id": "details_eyebrow",
+      "label": "Details eyebrow",
+      "default": "Product details"
+    },
+    {
+      "type": "text",
+      "id": "details_heading",
+      "label": "Details heading",
+      "default": "Ready for the pocket, desk, and dark."
+    },
+    {
+      "type": "textarea",
+      "id": "details_text",
+      "label": "Details text",
+      "default": "Nortune adds a low-key glow to the item you already reach for every day. Leave it near a lamp, window, or desk light and the finish stores that light for later."
+    },
+    {
+      "type": "text",
+      "id": "shipping_text",
+      "label": "Shipping text",
+      "default": "Free shipping"
+    },
+    {
+      "type": "text",
+      "id": "returns_text",
+      "label": "Returns text",
+      "default": "30-day guarantee"
+    },
+    {
+      "type": "text",
+      "id": "checkout_text",
+      "label": "Checkout text",
+      "default": "Secure checkout"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "benefit",
+      "name": "Product benefit",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Text",
+          "default": "Soft phosphorescent glow with no battery or LED"
+        }
+      ]
+    },
+    {
+      "type": "highlight",
+      "name": "Product highlight",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Soft night glow"
+        },
+        {
+          "type": "textarea",
+          "id": "text",
+          "label": "Text",
+          "default": "Charges from room light or sunlight, then glows gently in the dark."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Main product",
+      "blocks": [
+        { "type": "benefit", "settings": { "text": "Soft phosphorescent glow with no battery or LED" } },
+        { "type": "benefit", "settings": { "text": "Slim protective shell for everyday carry" } },
+        { "type": "benefit", "settings": { "text": "Built for wired and wireless charging" } },
+        { "type": "highlight", "settings": { "title": "Soft night glow", "text": "Charges from room light or sunlight, then glows gently in the dark." } },
+        { "type": "highlight", "settings": { "title": "Easy to spot", "text": "Find your AirPods faster on a nightstand, desk, couch, or bag." } },
+        { "type": "highlight", "settings": { "title": "Everyday slim", "text": "A clean protective shell that keeps the pocket feel light." } },
+        { "type": "highlight", "settings": { "title": "Charging friendly", "text": "Works with wired and wireless charging without removing the case." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

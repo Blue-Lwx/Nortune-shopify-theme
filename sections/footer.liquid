@@ -1,0 +1,32 @@
+<footer class="section" style="border-top: 1px solid var(--border);">
+  <div class="container">
+    <div class="site-header__inner" style="height: auto; align-items: flex-start;">
+      <p class="site-header__brand" style="margin: 0;">{{ settings.brand_name | default: shop.name | upcase }}</p>
+      <div class="site-nav" style="flex-wrap: wrap;">
+        {% if section.settings.menu != blank and section.settings.menu.links.size > 0 %}
+          {% for link in section.settings.menu.links %}
+            <a href="{{ link.url }}">{{ link.title }}</a>
+          {% endfor %}
+        {% else %}
+          <a href="{{ routes.root_url }}">Home</a>
+          <a href="{{ routes.search_url }}">Search</a>
+          <a href="{{ routes.cart_url }}">Cart</a>
+        {% endif %}
+      </div>
+      <p class="text-muted" style="margin: 0; font-size: 0.8rem;">&copy; {{ 'now' | date: '%Y' }} {{ shop.name }}. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+{% schema %}
+{
+  "name": "Footer",
+  "settings": [
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "Footer menu"
+    }
+  ]
+}
+{% endschema %}

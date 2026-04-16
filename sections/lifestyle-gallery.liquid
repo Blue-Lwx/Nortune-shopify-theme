@@ -1,0 +1,83 @@
+<section class="section section--muted">
+  <div class="container">
+    <div class="section-intro">
+      <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+      <h2 class="heading-lg">{{ section.settings.heading }}</h2>
+      <p class="text-muted">{{ section.settings.text }}</p>
+    </div>
+
+    <div class="grid-3">
+      {% for block in section.blocks %}
+        <div class="media-tile" {{ block.shopify_attributes }}>
+          {% if block.settings.image %}
+            {{ block.settings.image | image_url: width: 900 | image_tag: loading: 'lazy', alt: block.settings.alt }}
+          {% else %}
+            {% assign fallback = forloop.index %}
+            {% if fallback == 1 %}
+              <img src="{{ 'hero-image.jpg' | asset_url }}" alt="{{ block.settings.alt | escape }}" width="720" height="617" loading="lazy">
+            {% elsif fallback == 2 %}
+              <img src="{{ 'lifestyle-desk.jpg' | asset_url }}" alt="{{ block.settings.alt | escape }}" width="512" height="512" loading="lazy">
+            {% else %}
+              <img src="{{ 'lifestyle-lowlight.jpg' | asset_url }}" alt="{{ block.settings.alt | escape }}" width="1920" height="1920" loading="lazy">
+            {% endif %}
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Lifestyle gallery",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "Made for your lifestyle"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "For every low-light moment"
+    },
+    {
+      "type": "textarea",
+      "id": "text",
+      "label": "Text",
+      "default": "Whether it's your nightstand, a dimmed office, or a late-night commute - it just works."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "image",
+      "name": "Image",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "text",
+          "id": "alt",
+          "label": "Alt text",
+          "default": "Nortune Glow Case lifestyle image"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Lifestyle gallery",
+      "blocks": [
+        { "type": "image" },
+        { "type": "image" },
+        { "type": "image" }
+      ]
+    }
+  ]
+}
+{% endschema %}

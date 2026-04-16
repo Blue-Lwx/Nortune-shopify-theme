@@ -1,0 +1,47 @@
+{% liquid
+  assign brand_name = settings.brand_name | default: shop.name
+%}
+
+<header class="site-header">
+  <div class="container site-header__inner">
+    <a class="site-header__brand" href="{{ routes.root_url }}">{{ brand_name | upcase }}</a>
+
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="{{ routes.root_url }}">Home</a>
+      <a href="{{ routes.root_url }}#reviews">Reviews</a>
+      <a href="{{ routes.root_url }}#faq">FAQ</a>
+    </nav>
+
+    <div class="site-header__actions">
+      <a class="site-header__cart" href="{{ routes.cart_url }}" aria-label="Cart">
+        Cart
+        {% if cart.item_count > 0 %}
+          <span class="cart-count">{{ cart.item_count }}</span>
+        {% endif %}
+      </a>
+      <button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-label="Open navigation">
+        Menu
+      </button>
+    </div>
+  </div>
+
+  <div class="container mobile-nav" data-mobile-nav>
+    <a href="{{ routes.root_url }}">Home</a>
+    <a href="{{ routes.root_url }}#reviews">Reviews</a>
+    <a href="{{ routes.root_url }}#faq">FAQ</a>
+  </div>
+</header>
+
+{% schema %}
+{
+  "name": "Header",
+  "settings": [
+    {
+      "type": "text",
+      "id": "featured_product",
+      "label": "Fallback shop product handle",
+      "default": "glow-in-the-dark-airpods-case"
+    }
+  ]
+}
+{% endschema %}
