@@ -461,4 +461,156 @@ document.addEventListener("DOMContentLoaded", () => {
     if (selectedBundle) selectBundle(selectedBundle);
     updateSummary();
   });
+
+  document.querySelectorAll("[data-cart-form]").forEach((form) => {
+    const subtotalTarget = form.querySelector("[data-cart-subtotal]");
+    const shippingRow = form.querySelector("[data-cart-shipping]");
+    const shippingLabel = form.querySelector("[data-cart-shipping-label]");
+    const shippingValue = form.querySelector("[data-cart-shipping-value]");
+    const shippingHelper = form.querySelector("[data-cart-shipping-helper]");
+    const status = form.querySelector("[data-cart-status]");
+    const updateButton = form.querySelector('button[name="update"]');
+    const checkoutButton = form.querySelector('button[name="checkout"]');
+    const threshold = Number(shippingRow?.getAttribute("data-shipping-threshold") || "3998");
+    const underThresholdPrice = shippingRow?.getAttribute("data-under-threshold-price") || "$1.99";
+    let quantityTimer = null;
+
+    const formatMoney = (cents) => {
+      const currency = window.Shopify?.currency?.active || "USD";
+
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency,
+      }).format((Number(cents) || 0) / 100);
+    };
+
+    const setStatus = (message) => {
+      if (!status) return;
+      status.textContent = message;
+    };
+
+    const setLoading = (isLoading) => {
+      form.classList.toggle("is-updating", isLoading);
+      if (checkoutButton) checkoutButton.disabled = isLoading;
+    };
+
+    const updateHeaderCartCount = (itemCount) => {
+      const cartLink = document.querySelector(".site-header__cart");
+      if (!cartLink) return;
+
+      let count = cartLink.querySelector(".cart-count");
+      if (itemCount > 0) {
+        if (!count) {
+          count = document.createElement("span");
+          count.className = "cart-count";
+          cartLink.appendChild(count);
+        }
+        count.textContent = String(itemCount);
+      } else if (count) {
+        count.remove();
+      }
+    };
+
+    const updateShippingDisplay = (totalPrice) => {
+      if (!shippingLabel || !shippingValue || !shippingHelper) return;
+
+      if (totalPrice < threshold) {
+        shippingLabel.textContent = "Standard Shipping";
+        shippingValue.textContent = underThresholdPrice;
+        shippingHelper.textContent = "Orders under $39.98 ship for $1.99. Final shipping options are confirmed at checkout.";
+      } else {
+        shippingLabel.textContent = "Shipping";
+        shippingValue.textContent = "Calculated at checkout";
+        shippingHelper.textContent = "Eligible shipping rates are confirmed by Shopify at checkout.";
+      }
+    };
+
+    const updateCartDom = (cart) => {
+      if (subtotalTarget) subtotalTarget.textContent = formatMoney(cart.total_price);
+      updateShippingDisplay(cart.total_price);
+      updateHeaderCartCount(cart.item_count);
+
+      const returnedItems = new Map(cart.items.map((item) => [item.key, item]));
+      form.querySelectorAll("[data-cart-line]").forEach((line) => {
+        const key = line.getAttribute("data-cart-line-key");
+        const item = returnedItems.get(key);
+
+        if (!item) {
+          line.remove();
+          return;
+        }
+
+        const quantityInput = line.querySelector("[data-cart-quantity]");
+        const priceTarget = line.querySelector("[data-cart-line-price]");
+        const compareTarget = line.querySelector("[data-cart-line-compare]");
+
+        if (quantityInput) quantityInput.value = String(item.quantity);
+        if (priceTarget) priceTarget.textContent = formatMoney(item.final_line_price);
+        if (compareTarget) {
+          compareTarget.textContent = formatMoney(item.original_line_price);
+          compareTarget.hidden = item.original_line_price === item.final_line_price;
+        }
+      });
+
+      if (cart.item_count === 0) {
+        window.location.href = "/cart";
+      }
+    };
+
+    const changeCartLine = (key, quantity) => {
+      if (!key) return Promise.resolve();
+
+      setLoading(true);
+      setStatus("Updating cart...");
+
+      return fetch("/cart/change.js", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({ id: key, quantity }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            return response.json().then((payload) => {
+              throw new Error(payload.description || payload.message || "Unable to update cart.");
+            });
+          }
+          return response.json();
+        })
+        .then((cart) => {
+          updateCartDom(cart);
+          setStatus("Cart updated.");
+        })
+        .catch((error) => {
+          setStatus(error.message);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    };
+
+    form.querySelectorAll("[data-cart-remove]").forEach((removeLink) => {
+      removeLink.addEventListener("click", (event) => {
+        event.preventDefault();
+        changeCartLine(removeLink.getAttribute("data-cart-line-key"), 0);
+      });
+    });
+
+    form.querySelectorAll("[data-cart-quantity]").forEach((input) => {
+      input.addEventListener("change", () => {
+        window.clearTimeout(quantityTimer);
+        quantityTimer = window.setTimeout(() => {
+          const quantity = Math.max(0, Number(input.value) || 0);
+          input.value = String(quantity);
+          changeCartLine(input.getAttribute("data-cart-line-key"), quantity);
+        }, 250);
+      });
+    });
+
+    if (updateButton) {
+      updateButton.hidden = true;
+    }
+  });
 });

@@ -1416,6 +1416,29 @@ select {
   text-align: right;
 }
 
+.cart-summary__helper {
+  margin: -0.35rem 0 1rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.cart-status {
+  min-height: 1.2rem;
+  margin: 0.8rem 0 0;
+  font-size: 0.78rem;
+}
+
+[data-cart-form].is-updating .cart-item,
+[data-cart-form].is-updating .cart-summary {
+  opacity: 0.72;
+}
+
+[data-cart-form].is-updating button,
+[data-cart-form].is-updating input,
+[data-cart-form].is-updating a {
+  pointer-events: none;
+}
+
 .empty-state {
   max-width: 560px;
   margin: 0 auto;

@@ -6,7 +6,7 @@
     </div>
 
     {% if cart.item_count > 0 %}
-      <form action="{{ routes.cart_url }}" method="post" novalidate>
+      <form action="{{ routes.cart_url }}" method="post" novalidate data-cart-form>
         <div class="cart-layout">
           <div class="cart-items">
             {% for item in cart.items %}
@@ -26,7 +26,7 @@
                   {% endif %}
                 {% endif %}
               {% endfor %}
-              <article class="cart-item">
+              <article class="cart-item" data-cart-line data-cart-line-key="{{ item.key | escape }}">
                 <a class="cart-item__image" href="{{ item.url }}">
                   {% if item.product.handle == 'null-1776305574568' and cart_color != blank %}
                     <img src="{{ cart_fallback_image }}" alt="{{ display_item_title | escape }}" width="240" height="240" loading="lazy">
@@ -64,18 +64,30 @@
                     name="updates[]"
                     value="{{ item.quantity }}"
                     min="0"
+                    data-cart-quantity
+                    data-cart-line-key="{{ item.key | escape }}"
                     aria-label="Quantity for {{ item.product.title | escape }}"
                   >
-                  <a class="cart-item__remove" href="{{ item.url_to_remove }}" aria-label="Remove {{ display_item_title | escape }}">
+                  <a
+                    class="cart-item__remove"
+                    href="{{ item.url_to_remove }}"
+                    data-cart-remove
+                    data-cart-line-key="{{ item.key | escape }}"
+                    aria-label="Remove {{ display_item_title | escape }}"
+                  >
                     Remove
                   </a>
                 </div>
 
                 <div class="cart-item__price">
-                  <strong>{{ item.final_line_price | money }}</strong>
-                  {% if item.original_line_price != item.final_line_price %}
-                    <s class="text-muted">{{ item.original_line_price | money }}</s>
-                  {% endif %}
+                  <strong data-cart-line-price>{{ item.final_line_price | money }}</strong>
+                  <s
+                    class="text-muted"
+                    data-cart-line-compare
+                    {% if item.original_line_price == item.final_line_price %}hidden{% endif %}
+                  >
+                    {{ item.original_line_price | money }}
+                  </s>
                 </div>
               </article>
             {% endfor %}
@@ -85,13 +97,31 @@
             <h2 class="heading-md" style="font-size: 1.35rem;">Order summary</h2>
             <div class="cart-summary__row">
               <span>Subtotal</span>
-              <strong>{{ cart.total_price | money }}</strong>
+              <strong data-cart-subtotal>{{ cart.total_price | money }}</strong>
             </div>
-            <div class="cart-summary__row cart-summary__row--subtle">
-              <span>Shipping</span>
-              <strong>Calculated at checkout</strong>
+            <div
+              class="cart-summary__row cart-summary__row--subtle"
+              data-cart-shipping
+              data-shipping-threshold="3998"
+              data-under-threshold-price="$1.99"
+            >
+              {% if cart.total_price < 3998 %}
+                <span data-cart-shipping-label>Standard Shipping</span>
+                <strong data-cart-shipping-value>$1.99</strong>
+              {% else %}
+                <span data-cart-shipping-label>Shipping</span>
+                <strong data-cart-shipping-value>Calculated at checkout</strong>
+              {% endif %}
             </div>
+            <p class="cart-summary__helper text-muted" data-cart-shipping-helper>
+              {% if cart.total_price < 3998 %}
+                Orders under $39.98 ship for $1.99. Final shipping options are confirmed at checkout.
+              {% else %}
+                Eligible shipping rates are confirmed by Shopify at checkout.
+              {% endif %}
+            </p>
             <p class="text-muted">{{ section.settings.discount_note }}</p>
+            <p class="cart-status text-muted" data-cart-status role="status" aria-live="polite"></p>
             <div class="button-stack">
               <button class="button button--outline" type="submit" name="update">Update cart</button>
               <button class="button" type="submit" name="checkout">Checkout</button>
@@ -128,7 +158,7 @@
       "type": "textarea",
       "id": "discount_note",
       "label": "Discount note",
-      "default": "Bundle savings apply automatically. Shipping rates are calculated by Shopify at checkout from your store shipping settings."
+      "default": "Bundle savings apply automatically. Final shipping options are confirmed by Shopify at checkout."
     },
     {
       "type": "text",
