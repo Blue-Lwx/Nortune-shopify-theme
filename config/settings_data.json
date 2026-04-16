@@ -2,6 +2,14 @@
   "current": {
     "brand_name": "Nortune",
     "accent_blue": "#00bfff",
-    "accent_orange": "#ff8a00"
+    "accent_orange": "#ff8a00",
+    "sections": {
+      "header": {
+        "type": "header",
+        "settings": {
+          "featured_product": "null-1776305574568"
+        }
+      }
+    }
   }
 }

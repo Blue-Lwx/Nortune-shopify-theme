@@ -9,12 +9,15 @@
         "heading_highlight": "in the dark again",
         "subtext": "A premium AirPods case with a phosphorescent glow - spot it instantly in any dark room.",
         "cta_label": "Get Yours Now",
-        "secondary_label": "Choose Your Glow"
+        "cta_link": "/products/null-1776305574568",
+        "secondary_label": "Choose Your Glow",
+        "secondary_link": "/products/null-1776305574568"
       }
     },
     "featured_product": {
       "type": "featured-product",
       "settings": {
+        "product": "null-1776305574568",
         "eyebrow": "Two variants",
         "heading": "Choose your glow",
         "text": "A clean AirPods case that stays low-key in daylight and glows softly when the room goes dark.",
@@ -94,7 +97,8 @@
       ],
       "settings": {
         "eyebrow": "Why people love it",
-        "heading": "More than just a case"
+        "heading": "More than just a case",
+        "cta_link": "/products/null-1776305574568"
       }
     },
     "reviews": {
@@ -132,7 +136,8 @@
       ],
       "settings": {
         "eyebrow": "4.9/5 from 200+ reviews",
-        "heading": "People can't stop talking about it"
+        "heading": "People can't stop talking about it",
+        "cta_link": "/products/null-1776305574568"
       }
     },
     "faq": {
@@ -176,7 +181,8 @@
         "eyebrow": "Limited stock available",
         "heading": "Ready to glow?",
         "text": "Join thousands of happy customers. Pick your color and never lose your AirPods in the dark again.",
-        "cta_label": "Get Yours Now - $29.99"
+        "cta_label": "Get Yours Now - $29.99",
+        "cta_link": "/products/null-1776305574568"
       }
     }
   },

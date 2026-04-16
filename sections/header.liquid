@@ -1,9 +1,11 @@
 {% liquid
   assign brand_name = settings.brand_name | default: shop.name
   assign header_product = all_products[section.settings.featured_product]
-  assign product_url = '/products/' | append: section.settings.featured_product
+  assign product_url = routes.all_products_collection_url
   if header_product != blank
     assign product_url = header_product.url
+  elsif section.settings.featured_product != blank
+    assign product_url = '/products/' | append: section.settings.featured_product
   endif
 %}
 
@@ -48,7 +50,7 @@
       "type": "text",
       "id": "featured_product",
       "label": "Fallback shop product handle",
-      "default": "glow-in-the-dark-airpods-case"
+      "default": "null-1776305574568"
     }
   ]
 }
