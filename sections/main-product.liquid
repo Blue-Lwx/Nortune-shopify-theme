@@ -8,6 +8,24 @@
   assign two_savings = 1499
   assign three_savings = 3498
   assign product_form_id = 'product-form-' | append: section.id
+  assign white_product_image = 'product-blue.jpeg' | asset_url
+  assign orange_product_image = 'product-orange.jpeg' | asset_url
+
+  if product.featured_media
+    assign white_product_image = product.featured_media.preview_image | image_url: width: 1200
+  endif
+
+  for media in product.media
+    if media.preview_image
+      assign media_src = media.preview_image | image_url: width: 1200
+      assign media_src_downcase = media_src | downcase
+      if media_src_downcase contains 'orange'
+        assign orange_product_image = media_src
+      elsif media_src_downcase contains 'white' or media_src_downcase contains 'black'
+        assign white_product_image = media_src
+      endif
+    endif
+  endfor
 %}
 
 <section class="product-main">
@@ -202,10 +220,36 @@
                     {% assign color_handle = color | handleize %}
                     {% assign color_variant = blank %}
                     {% for variant in product.variants %}
-                      {% assign variant_match_text = variant.title | append: ' ' | append: variant.option1 | append: ' ' | append: variant.option2 | append: ' ' | append: variant.option3 | downcase %}
-                      {% assign color_match = color | downcase %}
-                      {% if variant_match_text contains color_match and color_variant == blank %}
-                        {% assign color_variant = variant %}
+                      {% assign variant_color_text = variant.option1 | default: variant.title | downcase %}
+                      {% if color_variant == blank %}
+                        {% case color %}
+                          {% when 'White' %}
+                            {% if variant_color_text contains 'glow blue' or variant_color_text contains 'luminous white' or variant_color_text contains 'white' %}
+                              {% assign color_variant = variant %}
+                            {% endif %}
+                          {% when 'Blue' %}
+                            {% if variant_color_text contains 'blue' %}
+                              {% unless variant_color_text contains 'glow blue' %}
+                                {% assign color_variant = variant %}
+                              {% endunless %}
+                            {% endif %}
+                          {% when 'Green' %}
+                            {% if variant_color_text contains 'green' %}
+                              {% assign color_variant = variant %}
+                            {% endif %}
+                          {% when 'Purple' %}
+                            {% if variant_color_text contains 'purple' %}
+                              {% assign color_variant = variant %}
+                            {% endif %}
+                          {% when 'Red' %}
+                            {% if variant_color_text contains 'red' %}
+                              {% assign color_variant = variant %}
+                            {% endif %}
+                          {% when 'Orange' %}
+                            {% if variant_color_text contains 'orange' %}
+                              {% assign color_variant = variant %}
+                            {% endif %}
+                        {% endcase %}
                       {% endif %}
                     {% endfor %}
 
@@ -213,15 +257,15 @@
                       {% assign color_variant = current_variant %}
                     {% endif %}
 
-                    {% assign color_image = 'product-blue.jpeg' | asset_url %}
+                    {% assign color_image = white_product_image %}
                     {% if color == 'Orange' %}
-                      {% assign color_image = 'product-orange.jpeg' | asset_url %}
+                      {% assign color_image = orange_product_image %}
                     {% elsif color_variant.featured_media %}
                       {% assign color_image = color_variant.featured_media.preview_image | image_url: width: 1200 %}
                     {% elsif color_variant.image %}
                       {% assign color_image = color_variant.image | image_url: width: 1200 %}
-                    {% elsif product.featured_media %}
-                      {% assign color_image = product.featured_media.preview_image | image_url: width: 1200 %}
+                    {% elsif color == 'White' %}
+                      {% assign color_image = white_product_image %}
                     {% endif %}
 
                     {% assign is_available = false %}

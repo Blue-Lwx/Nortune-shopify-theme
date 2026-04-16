@@ -424,6 +424,11 @@ select {
   box-shadow: none;
 }
 
+.product-card--link {
+  display: block;
+  color: inherit;
+}
+
 .product-card:hover {
   box-shadow: none;
 }

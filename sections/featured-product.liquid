@@ -7,6 +7,25 @@
   if product_url == blank
     assign product_url = routes.all_products_collection_url
   endif
+
+  assign white_product_image = 'product-blue.jpeg' | asset_url
+  assign orange_product_image = 'product-orange.jpeg' | asset_url
+
+  if featured_product.featured_media
+    assign white_product_image = featured_product.featured_media.preview_image | image_url: width: 900
+  endif
+
+  for media in featured_product.media
+    if media.preview_image
+      assign media_src = media.preview_image | image_url: width: 900
+      assign media_src_downcase = media_src | downcase
+      if media_src_downcase contains 'orange'
+        assign orange_product_image = media_src
+      elsif media_src_downcase contains 'white' or media_src_downcase contains 'black'
+        assign white_product_image = media_src
+      endif
+    endif
+  endfor
 %}
 
 <section class="section">
@@ -18,12 +37,8 @@
     </div>
 
     <div class="grid-2 product-showcase-grid">
-      <article class="product-card">
-        {% if featured_product.featured_image %}
-          {{ featured_product.featured_image | image_url: width: 900 | image_tag: class: 'product-card__image', loading: 'lazy', alt: featured_product.title }}
-        {% else %}
-          <img class="product-card__image" src="{{ 'product-blue.jpeg' | asset_url }}" alt="Blue glow AirPods case" width="1824" height="1824" loading="lazy">
-        {% endif %}
+      <a class="product-card product-card--link" href="{{ product_url }}" aria-label="Shop White case">
+        <img class="product-card__image" src="{{ white_product_image }}" alt="White glow AirPods case" width="900" height="900" loading="lazy">
         <div class="product-card__overlay">
           <h3 class="product-card__title">White</h3>
           <div class="product-card__meta-row">
@@ -37,10 +52,10 @@
             <span class="product-card__tag">Popular choice</span>
           </div>
         </div>
-      </article>
+      </a>
 
-      <article class="product-card">
-        <img class="product-card__image" src="{{ 'product-orange.jpeg' | asset_url }}" alt="Orange glow AirPods case" width="1920" height="1829" loading="lazy">
+      <a class="product-card product-card--link" href="{{ product_url }}" aria-label="Shop Orange case">
+        <img class="product-card__image" src="{{ orange_product_image }}" alt="Orange glow AirPods case" width="900" height="900" loading="lazy">
         <div class="product-card__overlay">
           <h3 class="product-card__title">Orange</h3>
           <div class="product-card__meta-row">
@@ -48,7 +63,7 @@
             <span class="product-card__tag product-card__tag--orange">Selling fast</span>
           </div>
         </div>
-      </article>
+      </a>
     </div>
 
     <div class="center" style="margin-top: 3rem;">
