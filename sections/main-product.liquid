@@ -101,6 +101,7 @@
         <input type="hidden" name="properties[Bundle]" value="2 Cases" data-bundle-property>
         <input type="hidden" name="properties[Displayed bundle savings]" value="{{ two_savings | money }}" data-savings-property>
         <input type="hidden" name="properties[AirPods model]" value="" data-compatibility-property>
+        <input type="hidden" name="properties[Selected AirPods models]" value="" data-compatibility-list-property>
         <input type="hidden" name="properties[Case 1 color]" value="" data-color-property data-color-property-index="1">
         <input type="hidden" name="properties[Case 2 color]" value="" data-color-property data-color-property-index="2">
         <input type="hidden" name="properties[Case 3 color]" value="" data-color-property data-color-property-index="3">
@@ -128,12 +129,12 @@
             <div class="selector-heading">
               <div>
                 <p class="selector-label">Choose your AirPods model</p>
-                <p class="selector-hint">We will ship the shell that fits your selection.</p>
+                <p class="selector-hint" data-model-limit-label>Choose up to 2 models. We will ship the shell that fits your selection.</p>
               </div>
               <span class="required-pill">Required</span>
             </div>
 
-            <div class="option-grid option-grid--compatibility" role="radiogroup" aria-label="Choose AirPods model">
+            <div class="option-grid option-grid--compatibility" role="group" aria-label="Choose AirPods model">
               {% assign compatibility_options = 'AirPods 1/2,AirPods 3,AirPods 4,AirPods Pro 1,AirPods Pro 2,AirPods Pro 3' | split: ',' %}
               {% for option in compatibility_options %}
                 <button
@@ -147,6 +148,7 @@
                 </button>
               {% endfor %}
             </div>
+            <p class="selector-selection-count" data-model-count>0 of 2 selected</p>
           </div>
 
           <div class="selector-group">
@@ -234,16 +236,24 @@
                   <div class="color-swatch-grid" role="radiogroup" aria-label="Choose color for case {{ case_number }}">
                     {% for color in color_options %}
                       {% assign color_handle = color | handleize %}
+                      {% assign color_image = 'product-blue.jpeg' %}
+                      {% if color_handle == 'orange-glow' %}
+                        {% assign color_image = 'product-orange.jpeg' %}
+                      {% endif %}
                       <button
                         type="button"
                         class="color-swatch color-swatch--{{ color_handle }}"
                         data-color-option
                         data-color-index="{{ case_number }}"
                         data-value="{{ color }}"
+                        data-color-image="{{ color_image | asset_url }}"
                         aria-pressed="false"
                         aria-label="{{ color }} for case {{ case_number }}"
                       >
-                        <span></span>
+                        <span class="color-swatch__image">
+                          <img src="{{ color_image | asset_url }}" alt="" width="120" height="120" loading="lazy">
+                          <span class="color-swatch__tone"></span>
+                        </span>
                         <strong>{{ color }}</strong>
                       </button>
                     {% endfor %}

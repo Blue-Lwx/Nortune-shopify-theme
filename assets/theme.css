@@ -830,6 +830,18 @@ select {
   box-shadow: 0 0 28px rgba(0, 191, 255, 0.16);
 }
 
+.option-button.is-disabled {
+  opacity: 0.46;
+  cursor: not-allowed;
+}
+
+.selector-selection-count {
+  margin: 0.7rem 0 0;
+  color: var(--muted-foreground);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
 .bundle-list {
   display: grid;
   gap: 0.75rem;
@@ -928,13 +940,13 @@ select {
 }
 
 .color-swatch {
-  min-height: 4.8rem;
+  min-height: 6.6rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--card);
   color: var(--muted-foreground);
   cursor: pointer;
-  padding: 0.65rem 0.4rem;
+  padding: 0.5rem 0.4rem 0.65rem;
   display: grid;
   gap: 0.45rem;
   place-items: center;
@@ -942,12 +954,33 @@ select {
   transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
 }
 
-.color-swatch span {
-  width: 1.5rem;
-  height: 1.5rem;
+.color-swatch__image {
+  position: relative;
+  width: 3.4rem;
+  height: 3.4rem;
+  overflow: hidden;
+  border-radius: var(--radius);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 0 18px rgba(0, 191, 255, 0.08);
+}
+
+.color-swatch__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.color-swatch__tone {
+  position: absolute;
+  right: 0.25rem;
+  bottom: 0.25rem;
+  width: 0.9rem;
+  height: 0.9rem;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.35);
 }
 
 .color-swatch strong {
@@ -967,23 +1000,23 @@ select {
   box-shadow: 0 0 28px rgba(0, 191, 255, 0.16);
 }
 
-.color-swatch--blue-glow span {
+.color-swatch--blue-glow .color-swatch__tone {
   background: #00bfff;
 }
 
-.color-swatch--orange-glow span {
+.color-swatch--orange-glow .color-swatch__tone {
   background: #fb923c;
 }
 
-.color-swatch--arctic-green span {
+.color-swatch--arctic-green .color-swatch__tone {
   background: #9cffd1;
 }
 
-.color-swatch--moon-pink span {
+.color-swatch--moon-pink .color-swatch__tone {
   background: #ff9bd4;
 }
 
-.color-swatch--clear-glow span {
+.color-swatch--clear-glow .color-swatch__tone {
   background: linear-gradient(135deg, #ffffff, #a9f4ff);
 }
 

@@ -15,13 +15,12 @@
 
     <nav class="site-nav" aria-label="Main navigation">
       <a href="{{ routes.root_url }}">Home</a>
-      <a href="{{ product_url }}">Shop Case</a>
+      <a href="{{ product_url }}">Product</a>
       <a href="{{ routes.root_url }}#reviews">Reviews</a>
       <a href="{{ routes.root_url }}#faq">FAQ</a>
     </nav>
 
     <div class="site-header__actions">
-      <a class="site-header__product" href="{{ product_url }}">Shop Glow Case</a>
       <a class="site-header__cart" href="{{ routes.cart_url }}" aria-label="Cart">
         Cart
         {% if cart.item_count > 0 %}
@@ -36,7 +35,7 @@
 
   <div class="container mobile-nav" data-mobile-nav>
     <a href="{{ routes.root_url }}">Home</a>
-    <a href="{{ product_url }}">Shop Glow Case</a>
+    <a href="{{ product_url }}">Product</a>
     <a href="{{ routes.root_url }}#reviews">Reviews</a>
     <a href="{{ routes.root_url }}#faq">FAQ</a>
   </div>
