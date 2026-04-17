@@ -249,10 +249,14 @@ document.addEventListener("DOMContentLoaded", () => {
           id: Number(item.variant.id),
           quantity: 0,
           labels: [],
+          colors: new Set(),
+          models: new Set(),
         };
 
         existing.quantity += 1;
         existing.labels.push(`Item ${index + 1}: ${item.color} / ${item.model}`);
+        existing.colors.add(item.color);
+        existing.models.add(item.model);
         grouped.set(id, existing);
       });
 
@@ -261,6 +265,8 @@ document.addEventListener("DOMContentLoaded", () => {
         quantity: item.quantity,
         properties: {
           Bundle: selections.title,
+          Color: Array.from(item.colors).join(", "),
+          "AirPods model": Array.from(item.models).join(", "),
           "Displayed bundle price": selections.total,
           "Displayed bundle savings": selections.savings,
           "Selected cases": item.labels.join("; "),
@@ -317,8 +323,8 @@ document.addEventListener("DOMContentLoaded", () => {
       updateSelectedLines();
 
       const ready = isComplete();
-      if (submitButton) submitButton.disabled = submitButton.hasAttribute("data-sold-out");
-      if (mobileSubmitButton) mobileSubmitButton.disabled = mobileSubmitButton.hasAttribute("data-sold-out");
+      if (submitButton) submitButton.disabled = submitButton.hasAttribute("data-sold-out") || !ready;
+      if (mobileSubmitButton) mobileSubmitButton.disabled = mobileSubmitButton.hasAttribute("data-sold-out") || !ready;
       if (error) {
         const message = getValidationMessage();
         error.textContent = message || "";
@@ -452,8 +458,7 @@ document.addEventListener("DOMContentLoaded", () => {
             error.textContent = cartError.message;
             error.hidden = false;
           }
-          if (submitButton) submitButton.disabled = false;
-          if (mobileSubmitButton) mobileSubmitButton.disabled = false;
+          updateSummary();
         });
     });
 
@@ -462,9 +467,14 @@ document.addEventListener("DOMContentLoaded", () => {
     updateSummary();
   });
 
-  document.querySelectorAll("[data-cart-form]").forEach((form) => {
-    const cartContent = document.querySelector("[data-cart-content]");
-    const emptyState = document.querySelector("[data-cart-empty]");
+  const initCartForms = (root = document) => {
+    root.querySelectorAll("[data-cart-form]").forEach((form) => {
+    if (form.dataset.cartInitialized === "true") return;
+    form.dataset.cartInitialized = "true";
+
+    const cartSection = form.closest("[data-cart-section]");
+    const cartContent = cartSection?.querySelector("[data-cart-content]");
+    const emptyState = cartSection?.querySelector("[data-cart-empty]");
     const subtotalTarget = form.querySelector("[data-cart-subtotal]");
     const shippingRow = form.querySelector("[data-cart-shipping]");
     const shippingLabel = form.querySelector("[data-cart-shipping-label]");
@@ -476,6 +486,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const threshold = Number(shippingRow?.getAttribute("data-shipping-threshold") || "3998");
     const underThresholdPrice = shippingRow?.getAttribute("data-under-threshold-price") || "$1.99";
     let quantityTimer = null;
+    let isRequesting = false;
 
     const formatMoney = (cents) => {
       const currency = window.Shopify?.currency?.active || "USD";
@@ -533,7 +544,33 @@ document.addEventListener("DOMContentLoaded", () => {
       line.classList.add("is-removed");
       window.setTimeout(() => {
         line.remove();
-      }, 220);
+      }, 260);
+    };
+
+    const fetchCartSection = () => {
+      const sectionId = cartSection?.getAttribute("data-cart-section-id");
+      if (!sectionId) return Promise.reject(new Error("Cart section could not be refreshed."));
+
+      return fetch(`${window.location.pathname}?section_id=${encodeURIComponent(sectionId)}`, {
+        headers: { "Accept": "text/html" },
+      })
+        .then((response) => {
+          if (!response.ok) throw new Error("Cart section could not be refreshed.");
+          return response.text();
+        })
+        .then((html) => {
+          const template = document.createElement("template");
+          template.innerHTML = html.trim();
+          return template.content.querySelector("[data-cart-section]") || template.content.firstElementChild;
+        });
+    };
+
+    const replaceCartSection = (nextSection) => {
+      if (!nextSection || !cartSection) return false;
+
+      cartSection.replaceWith(nextSection);
+      initCartForms(nextSection);
+      return true;
     };
 
     const updateCartDom = (cart, options = {}) => {
@@ -576,11 +613,12 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const changeCartLine = (key, quantity, trigger = null) => {
-      if (!key) return Promise.resolve();
+      if (!key || isRequesting) return Promise.resolve();
 
       const line = form.querySelector(`[data-cart-line-key="${CSS.escape(key)}"][data-cart-line]`);
       const isRemoval = quantity === 0;
 
+      isRequesting = true;
       if (line) {
         line.classList.toggle("is-removing", isRemoval);
         line.classList.toggle("is-updating", !isRemoval);
@@ -588,6 +626,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (trigger) {
         trigger.setAttribute("aria-disabled", "true");
         if ("disabled" in trigger) trigger.disabled = true;
+        if (isRemoval && trigger.textContent) {
+          trigger.dataset.originalText = trigger.textContent;
+          trigger.textContent = "Removing...";
+        }
       }
 
       setLoading(true);
@@ -611,17 +653,36 @@ document.addEventListener("DOMContentLoaded", () => {
         })
         .then((cart) => {
           updateCartDom(cart, { removedKey: isRemoval ? key : "" });
-          setStatus(isRemoval ? "Item removed." : "Cart updated.");
+          return new Promise((resolve) => {
+            window.setTimeout(resolve, isRemoval ? 220 : 0);
+          })
+            .then(fetchCartSection)
+            .then((nextSection) => {
+              replaceCartSection(nextSection);
+            })
+            .catch(() => {
+              if (cart.item_count === 0) {
+                window.location.href = "/cart";
+              }
+            })
+            .then(() => {
+              setStatus(isRemoval ? "Item removed." : "Cart updated.");
+            });
         })
         .catch((error) => {
           if (line) line.classList.remove("is-removing", "is-updating");
           if (trigger) {
             trigger.removeAttribute("aria-disabled");
             if ("disabled" in trigger) trigger.disabled = false;
+            if (trigger.dataset.originalText) {
+              trigger.textContent = trigger.dataset.originalText;
+              delete trigger.dataset.originalText;
+            }
           }
           setStatus(error.message);
         })
         .finally(() => {
+          isRequesting = false;
           setLoading(false);
         });
     };
@@ -648,4 +709,7 @@ document.addEventListener("DOMContentLoaded", () => {
       updateButton.hidden = true;
     }
   });
+  };
+
+  initCartForms();
 });

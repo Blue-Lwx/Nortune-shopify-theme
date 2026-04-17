@@ -1308,6 +1308,7 @@ select {
   display: grid;
   grid-template-columns: 110px minmax(0, 1fr) auto;
   gap: 1rem;
+  max-height: 560px;
   padding: 1rem;
   transition: opacity 180ms ease, transform 180ms ease, max-height 220ms ease, margin 220ms ease, padding 220ms ease, border-color 180ms ease;
 }
