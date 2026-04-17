@@ -5,7 +5,7 @@
       "settings": {
         "eyebrow": "Your cart",
         "heading": "Ready when you are.",
-        "discount_note": "Bundle savings apply automatically. Checkout uses your Shopify shipping profile and rate rules.",
+        "discount_note": "Bundle savings apply automatically.",
         "empty_text": "Your cart is empty.",
         "empty_cta": "Shop Nocturne"
       }

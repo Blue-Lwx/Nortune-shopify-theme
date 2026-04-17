@@ -99,21 +99,7 @@
               <span>Subtotal</span>
               <strong data-cart-subtotal>{{ cart.total_price | money }}</strong>
             </div>
-            <div
-              class="cart-summary__row cart-summary__row--subtle"
-              data-cart-shipping
-            >
-              {% comment %}
-                TODO Shopify Admin: checkout shipping availability depends on the
-                product's General shipping profile covering the customer's market,
-                the discounted order subtotal, and the cart's total weight.
-              {% endcomment %}
-              <span data-cart-shipping-label>Shipping</span>
-              <strong data-cart-shipping-value>Calculated at checkout</strong>
-            </div>
-            <p class="cart-summary__helper text-muted" data-cart-shipping-helper>
-              Shopify checkout applies your configured standard and free shipping rates.
-            </p>
+            <p class="cart-summary__helper text-muted">Free Shipping on All Orders</p>
             <p class="text-muted">{{ section.settings.discount_note }}</p>
             <p class="cart-status text-muted" data-cart-status role="status" aria-live="polite"></p>
             <div class="button-stack">
@@ -156,7 +142,7 @@
       "type": "textarea",
       "id": "discount_note",
       "label": "Discount note",
-      "default": "Bundle savings apply automatically. Checkout uses your Shopify shipping profile and rate rules."
+      "default": "Bundle savings apply automatically."
     },
     {
       "type": "text",

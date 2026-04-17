@@ -523,9 +523,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const cartContent = cartSection?.querySelector("[data-cart-content]");
     const emptyState = cartSection?.querySelector("[data-cart-empty]");
     const subtotalTarget = form.querySelector("[data-cart-subtotal]");
-    const shippingLabel = form.querySelector("[data-cart-shipping-label]");
-    const shippingValue = form.querySelector("[data-cart-shipping-value]");
-    const shippingHelper = form.querySelector("[data-cart-shipping-helper]");
     const status = form.querySelector("[data-cart-status]");
     const updateButton = form.querySelector('button[name="update"]');
     const checkoutButton = form.querySelector('button[name="checkout"]');
@@ -568,14 +565,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     };
 
-    const updateShippingDisplay = () => {
-      if (!shippingLabel || !shippingValue || !shippingHelper) return;
-
-      shippingLabel.textContent = "Shipping";
-      shippingValue.textContent = "Calculated at checkout";
-      shippingHelper.textContent = "Shopify checkout applies your configured standard and free shipping rates.";
-    };
-
     const removeLineSmoothly = (line) => {
       if (!line) return;
 
@@ -613,7 +602,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const updateCartDom = (cart, options = {}) => {
       if (subtotalTarget) subtotalTarget.textContent = formatMoney(cart.total_price);
-      updateShippingDisplay();
       updateHeaderCartCount(cart.item_count);
 
       const returnedItems = new Map(cart.items.map((item) => [item.key, item]));
