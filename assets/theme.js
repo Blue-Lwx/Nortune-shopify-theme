@@ -1,4 +1,54 @@
 document.addEventListener("DOMContentLoaded", () => {
+  const getCartDiagnostics = (cart) => {
+    const items = Array.isArray(cart?.items) ? cart.items : [];
+    const invalidItems = items.filter((item) => {
+      return !item.id || !item.variant_id || item.quantity < 1;
+    });
+    const nonShippingItems = items.filter((item) => item.requires_shipping === false);
+
+    return {
+      itemCount: Number(cart?.item_count || 0),
+      totalPrice: Number(cart?.total_price || 0),
+      requiresShipping: Boolean(cart?.requires_shipping),
+      valid: invalidItems.length === 0,
+      invalidItems,
+      nonShippingItems,
+      items: items.map((item) => ({
+        key: item.key,
+        id: item.id,
+        variant_id: item.variant_id,
+        product_id: item.product_id,
+        quantity: item.quantity,
+        requires_shipping: item.requires_shipping,
+        grams: item.grams,
+        properties: item.properties || {},
+        title: item.title,
+      })),
+    };
+  };
+
+  const reportCartDiagnostics = (cart, context = "cart") => {
+    const diagnostics = getCartDiagnostics(cart);
+    window.NocturneCartDiagnostics = {
+      lastContext: context,
+      lastReport: diagnostics,
+      getCart: () => fetch("/cart.js", { headers: { "Accept": "application/json" } }).then((response) => response.json()),
+      log: () => {
+        console.info("[Nocturne cart diagnostics]", diagnostics);
+        console.table(diagnostics.items);
+        return diagnostics;
+      },
+    };
+
+    if (!diagnostics.valid || diagnostics.nonShippingItems.length > 0) {
+      console.warn("[Nocturne cart diagnostics] Cart payload needs attention.", diagnostics);
+    } else {
+      console.info("[Nocturne cart diagnostics] Cart payload is Shopify-compatible.", diagnostics);
+    }
+
+    return diagnostics;
+  };
+
   document.querySelectorAll("[data-menu-toggle]").forEach((button) => {
     button.addEventListener("click", () => {
       const nav = document.querySelector("[data-mobile-nav]");
@@ -38,8 +88,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const quantityInput = form.querySelector("[data-bundle-quantity]");
     const variantIdInput = form.querySelector("[data-variant-id-input]");
     const bundleProperty = form.querySelector("[data-bundle-property]");
-    const bundlePriceProperty = form.querySelector("[data-bundle-price-property]");
-    const savingsProperty = form.querySelector("[data-savings-property]");
     const itemCards = form.querySelectorAll("[data-bundle-item]");
     const itemModelOptions = form.querySelectorAll("[data-item-model-option]");
     const itemColorOptions = form.querySelectorAll("[data-item-color-option]");
@@ -267,8 +315,6 @@ document.addEventListener("DOMContentLoaded", () => {
           Bundle: selections.title,
           Color: Array.from(item.colors).join(", "),
           "AirPods model": Array.from(item.models).join(", "),
-          "Displayed bundle price": selections.total,
-          "Displayed bundle savings": selections.savings,
           "Selected cases": item.labels.join("; "),
         },
       }));
@@ -317,8 +363,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (variantIdInput) variantIdInput.value = selections.variantId;
       if (quantityInput) quantityInput.value = String(selections.quantity);
       if (bundleProperty) bundleProperty.value = selections.title;
-      if (bundlePriceProperty) bundlePriceProperty.value = selections.total;
-      if (savingsProperty) savingsProperty.value = selections.savings;
       updatePriceDisplay();
       updateSelectedLines();
 
@@ -450,7 +494,10 @@ document.addEventListener("DOMContentLoaded", () => {
           }
           return response.json();
         })
-        .then(() => {
+        .then(() => fetch("/cart.js", { headers: { "Accept": "application/json" } }))
+        .then((cartResponse) => cartResponse.json())
+        .then((cart) => {
+          reportCartDiagnostics(cart, "after bundle add");
           window.location.href = "/cart";
         })
         .catch((cartError) => {
@@ -476,15 +523,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const cartContent = cartSection?.querySelector("[data-cart-content]");
     const emptyState = cartSection?.querySelector("[data-cart-empty]");
     const subtotalTarget = form.querySelector("[data-cart-subtotal]");
-    const shippingRow = form.querySelector("[data-cart-shipping]");
     const shippingLabel = form.querySelector("[data-cart-shipping-label]");
     const shippingValue = form.querySelector("[data-cart-shipping-value]");
     const shippingHelper = form.querySelector("[data-cart-shipping-helper]");
     const status = form.querySelector("[data-cart-status]");
     const updateButton = form.querySelector('button[name="update"]');
     const checkoutButton = form.querySelector('button[name="checkout"]');
-    const threshold = Number(shippingRow?.getAttribute("data-shipping-threshold") || "3998");
-    const underThresholdPrice = shippingRow?.getAttribute("data-under-threshold-price") || "$1.99";
     let quantityTimer = null;
     let isRequesting = false;
 
@@ -524,18 +568,12 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     };
 
-    const updateShippingDisplay = (totalPrice) => {
+    const updateShippingDisplay = () => {
       if (!shippingLabel || !shippingValue || !shippingHelper) return;
 
-      if (totalPrice < threshold) {
-        shippingLabel.textContent = "Standard Shipping";
-        shippingValue.textContent = underThresholdPrice;
-        shippingHelper.textContent = "Orders under $39.98 show the standard $1.99 rule when your Shopify shipping profile covers the order. Final rates are confirmed at checkout.";
-      } else {
-        shippingLabel.textContent = "Shipping";
-        shippingValue.textContent = "Calculated at checkout";
-        shippingHelper.textContent = "Shipping rates for this order are confirmed by Shopify at checkout.";
-      }
+      shippingLabel.textContent = "Shipping";
+      shippingValue.textContent = "Calculated at checkout";
+      shippingHelper.textContent = "Shopify checkout applies your configured standard and free shipping rates.";
     };
 
     const removeLineSmoothly = (line) => {
@@ -575,7 +613,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const updateCartDom = (cart, options = {}) => {
       if (subtotalTarget) subtotalTarget.textContent = formatMoney(cart.total_price);
-      updateShippingDisplay(cart.total_price);
+      updateShippingDisplay();
       updateHeaderCartCount(cart.item_count);
 
       const returnedItems = new Map(cart.items.map((item) => [item.key, item]));
@@ -652,6 +690,7 @@ document.addEventListener("DOMContentLoaded", () => {
           return response.json();
         })
         .then((cart) => {
+          reportCartDiagnostics(cart, isRemoval ? "after cart remove" : "after cart quantity update");
           updateCartDom(cart, { removedKey: isRemoval ? key : "" });
           return new Promise((resolve) => {
             window.setTimeout(resolve, isRemoval ? 220 : 0);

@@ -102,28 +102,17 @@
             <div
               class="cart-summary__row cart-summary__row--subtle"
               data-cart-shipping
-              data-shipping-threshold="3998"
-              data-under-threshold-price="$1.99"
             >
               {% comment %}
                 TODO Shopify Admin: checkout shipping availability depends on the
                 product's General shipping profile covering the customer's market,
                 the discounted order subtotal, and the cart's total weight.
               {% endcomment %}
-              {% if cart.total_price < 3998 %}
-                <span data-cart-shipping-label>Standard Shipping</span>
-                <strong data-cart-shipping-value>$1.99</strong>
-              {% else %}
-                <span data-cart-shipping-label>Shipping</span>
-                <strong data-cart-shipping-value>Calculated at checkout</strong>
-              {% endif %}
+              <span data-cart-shipping-label>Shipping</span>
+              <strong data-cart-shipping-value>Calculated at checkout</strong>
             </div>
             <p class="cart-summary__helper text-muted" data-cart-shipping-helper>
-              {% if cart.total_price < 3998 %}
-                Orders under $39.98 show the standard $1.99 rule when your Shopify shipping profile covers the order. Final rates are confirmed at checkout.
-              {% else %}
-                Shipping rates for this order are confirmed by Shopify at checkout.
-              {% endif %}
+              Shopify checkout applies your configured standard and free shipping rates.
             </p>
             <p class="text-muted">{{ section.settings.discount_note }}</p>
             <p class="cart-status text-muted" data-cart-status role="status" aria-live="polite"></p>

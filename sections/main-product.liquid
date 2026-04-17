@@ -125,8 +125,6 @@
         <input type="hidden" name="quantity" value="2" data-bundle-quantity>
         <input type="hidden" name="id" value="{{ current_variant.id }}" data-variant-id-input>
         <input type="hidden" name="properties[Bundle]" value="Buy 2" data-bundle-property>
-        <input type="hidden" name="properties[Displayed bundle price]" value="{{ two_total | money }}" data-bundle-price-property>
-        <input type="hidden" name="properties[Displayed bundle savings]" value="{{ two_savings | money }}" data-savings-property>
         <input type="hidden" name="properties[Color]" value="" data-color-property>
         <input type="hidden" name="properties[AirPods model]" value="" data-model-property>
 
@@ -143,6 +141,9 @@
                 "inventory_management": {{ variant.inventory_management | json }},
                 "inventory_policy": {{ variant.inventory_policy | json }},
                 "inventory_quantity": {{ variant.inventory_quantity | json }},
+                "requires_shipping": {{ variant.requires_shipping | json }},
+                "weight": {{ variant.weight | json }},
+                "grams": {{ variant.weight | json }},
                 "title": {{ variant.title | json }}
               }{% unless forloop.last %},{% endunless %}
             {% endfor %}
